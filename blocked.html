@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sitio bloqueado</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f0f0f;
+      color: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .container { max-width: 400px; padding: 2rem; }
+    .icon { font-size: 4rem; margin-bottom: 1rem; }
+    h1 { font-size: 1.6rem; margin-bottom: 0.5rem; color: #fff; }
+    .site { color: #888; font-size: 1rem; margin-bottom: 1.5rem; font-family: monospace; }
+    p { color: #999; line-height: 1.6; }
+    .back {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.6rem 1.4rem;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #ccc;
+      text-decoration: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .back:hover { background: #222; border-color: #555; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🚫</div>
+    <h1>Sitio bloqueado</h1>
+    <div class="site" id="site-name"></div>
+    <p>Este sitio está bloqueado. Vuelve al trabajo.</p>
+    <a class="back" onclick="history.back()">← Volver</a>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const site = params.get("site");
+    if (site) document.getElementById("site-name").textContent = site;
+  </script>
+</body>
+</html>
