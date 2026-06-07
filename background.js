@@ -5,6 +5,7 @@ const ALWAYS_ALLOWED = [
   "music.youtube.com",
   "accounts.google.com",
   "accounts.youtube.com",
+  "reddit.com/chat/room/",
 ];
 
 function normalizeSites(raw) {
@@ -27,10 +28,18 @@ function isActiveToday(entry) {
 
 function isAlwaysAllowed(url) {
   try {
-    const hostname = new URL(url).hostname.replace(/^www\./, "");
-    return ALWAYS_ALLOWED.some(
-      (allowed) => hostname === allowed || hostname.endsWith("." + allowed)
-    );
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace(/^www\./, "");
+    return ALWAYS_ALLOWED.some((allowed) => {
+      const slashIdx = allowed.indexOf("/");
+      if (slashIdx !== -1) {
+        const allowedHost = allowed.slice(0, slashIdx).replace(/^www\./, "");
+        const allowedPath = "/" + allowed.slice(slashIdx + 1);
+        return (hostname === allowedHost || hostname.endsWith("." + allowedHost))
+          && parsed.pathname.startsWith(allowedPath);
+      }
+      return hostname === allowed || hostname.endsWith("." + allowed);
+    });
   } catch {
     return false;
   }

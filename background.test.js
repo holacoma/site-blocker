@@ -74,6 +74,16 @@ describe("isAlwaysAllowed", () => {
   test("retorna false para URLs inválidas", () => {
     expect(isAlwaysAllowed("no-es-una-url")).toBe(false);
   });
+
+  test("permite reddit.com/chat/room/ y sus subrutas", () => {
+    expect(isAlwaysAllowed("https://www.reddit.com/chat/room/abc123")).toBe(true);
+    expect(isAlwaysAllowed("https://reddit.com/chat/room/")).toBe(true);
+  });
+
+  test("NO permite reddit.com fuera de /chat/room/", () => {
+    expect(isAlwaysAllowed("https://www.reddit.com/r/programming")).toBe(false);
+    expect(isAlwaysAllowed("https://reddit.com/")).toBe(false);
+  });
 });
 
 // ─── isBlocked ────────────────────────────────────────────────────────────────
@@ -132,6 +142,18 @@ describe("isBlocked", () => {
   test("retorna false con lista vacía", () => {
     mockDay(1);
     expect(isBlocked("https://youtube.com/", [])).toBe(false);
+  });
+
+  test("NO bloquea reddit.com/chat/room/ aunque reddit.com esté bloqueado", () => {
+    mockDay(1);
+    const sites = [{ domain: "reddit.com", days: allDays }];
+    expect(isBlocked("https://www.reddit.com/chat/room/abc123", sites)).toBe(false);
+  });
+
+  test("sigue bloqueando reddit.com fuera de /chat/room/", () => {
+    mockDay(1);
+    const sites = [{ domain: "reddit.com", days: allDays }];
+    expect(isBlocked("https://www.reddit.com/r/programming", sites)).toBe(true);
   });
 
   test("retorna false para URLs inválidas", () => {
