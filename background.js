@@ -51,6 +51,10 @@ function isBlocked(url, blockedSites) {
 }
 
 
+if (typeof module !== "undefined") {
+  module.exports = { ALWAYS_ALLOWED, normalizeSites, isActiveToday, isAlwaysAllowed, isBlocked };
+}
+
 chrome.webNavigation.onBeforeNavigate.addListener((details) => {
   if (details.frameId !== 0) return;
   if (details.url.startsWith(BLOCKED_PAGE)) return;

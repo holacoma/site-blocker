@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "Site Blocker",
   "version": "1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwO24eXRCiiAeFBYUsv7X7wYPLkOlgDlBYIpmzuaY1IZEf/rS/UUGPD1meXT6u5jIJlH/zRoHk98d+tPc3c2DRQfuhUffV+xt+uxnMDq18zPkqdlQlhFu6WipuYIfO79IVYlstonxqv20efg+bxXolbcDeHNK/sNYP0bA5BA2Yaw9p9B5l25cwbP9GuioGP5TjSIhu3Ih8Y2AwG9RTdxWmrFHxnkD6bUWyCb/C5HvokUaSre+AF5XP4PFgXGJscsfXO5dBaH9pawa4ATl+vW3pIMfAMePD49FqzB2dhuwh/0aKqNR0mYm9BSas1f2AH0DRx84uEoQjphYbIleL1SYFQIDAQAB",
   "description": "Bloquea sitios web que distraen",
   "permissions": [
     "storage",
