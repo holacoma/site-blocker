@@ -41,12 +41,8 @@
     <h1>Sitio bloqueado</h1>
     <div class="site" id="site-name"></div>
     <p>Este sitio está bloqueado. Vuelve al trabajo.</p>
-    <a class="back" onclick="history.back()">← Volver</a>
+    <button class="back" id="back-btn">← Volver</button>
   </div>
-  <script>
-    const params = new URLSearchParams(location.search);
-    const site = params.get("site");
-    if (site) document.getElementById("site-name").textContent = site;
-  </script>
+  <script src="blocked.js"></script>
 </body>
 </html>
