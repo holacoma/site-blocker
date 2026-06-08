@@ -4,6 +4,8 @@ const {
   isActiveToday,
   isAlwaysAllowed,
   isBlocked,
+  findSiteEntry,
+  shouldAutoStart,
 } = require("./background");
 
 // ─── normalizeSites ───────────────────────────────────────────────────────────
@@ -11,11 +13,16 @@ const {
 describe("normalizeSites", () => {
   test("convierte strings a objetos con todos los días", () => {
     const result = normalizeSites(["youtube.com"]);
-    expect(result).toEqual([{ domain: "youtube.com", days: [0, 1, 2, 3, 4, 5, 6] }]);
+    expect(result).toEqual([{ domain: "youtube.com", days: [0, 1, 2, 3, 4, 5, 6], timerMinutes: 0 }]);
   });
 
-  test("deja los objetos existentes sin cambios", () => {
+  test("agrega timerMinutes: 0 a objetos sin ese campo", () => {
     const entry = { domain: "reddit.com", days: [1, 2, 3] };
+    expect(normalizeSites([entry])).toEqual([{ ...entry, timerMinutes: 0 }]);
+  });
+
+  test("respeta timerMinutes existente en el objeto", () => {
+    const entry = { domain: "reddit.com", days: [1, 2, 3], timerMinutes: 30 };
     expect(normalizeSites([entry])).toEqual([entry]);
   });
 
@@ -171,5 +178,122 @@ describe("isBlocked", () => {
     ];
     expect(isBlocked("https://twitter.com/home", sites)).toBe(true);
     expect(isBlocked("https://github.com/", sites)).toBe(false);
+  });
+});
+
+// ─── isBlocked — timer bypass ─────────────────────────────────────────────────
+
+describe("isBlocked — timer bypass", () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  const allDays = [0, 1, 2, 3, 4, 5, 6];
+
+  function mockDay(day) {
+    jest.spyOn(Date.prototype, "getDay").mockReturnValue(day);
+  }
+
+  test("permite acceso cuando hay un timer activo para el dominio", () => {
+    mockDay(1);
+    const sites = [{ domain: "reddit.com", days: allDays }];
+    const activeTimers = { "reddit.com": Date.now() + 60_000 };
+    expect(isBlocked("https://reddit.com/r/programming", sites, activeTimers)).toBe(false);
+  });
+
+  test("bloquea de nuevo cuando el timer expiró", () => {
+    mockDay(1);
+    const sites = [{ domain: "reddit.com", days: allDays }];
+    const activeTimers = { "reddit.com": Date.now() - 1 };
+    expect(isBlocked("https://reddit.com/r/programming", sites, activeTimers)).toBe(true);
+  });
+
+  test("el timer de un dominio no afecta a otros dominios", () => {
+    mockDay(1);
+    const sites = [
+      { domain: "reddit.com", days: allDays },
+      { domain: "twitter.com", days: allDays },
+    ];
+    const activeTimers = { "reddit.com": Date.now() + 60_000 };
+    expect(isBlocked("https://reddit.com/", sites, activeTimers)).toBe(false);
+    expect(isBlocked("https://twitter.com/", sites, activeTimers)).toBe(true);
+  });
+
+  test("el timer aplica a www del dominio (www stripping)", () => {
+    mockDay(1);
+    const sites = [{ domain: "reddit.com", days: allDays }];
+    const activeTimers = { "reddit.com": Date.now() + 60_000 };
+    expect(isBlocked("https://www.reddit.com/r/programming", sites, activeTimers)).toBe(false);
+  });
+
+  test("activeTimers vacío no cambia el comportamiento de bloqueo por día", () => {
+    mockDay(1);
+    const sites = [{ domain: "reddit.com", days: allDays }];
+    expect(isBlocked("https://reddit.com/", sites, {})).toBe(true);
+  });
+
+  test("activeTimers undefined es retro-compatible (usa default {})", () => {
+    mockDay(1);
+    const sites = [{ domain: "reddit.com", days: allDays }];
+    expect(isBlocked("https://reddit.com/", sites, undefined)).toBe(true);
+  });
+});
+
+// ─── findSiteEntry ────────────────────────────────────────────────────────────
+
+describe("findSiteEntry", () => {
+  const sites = [
+    { domain: "reddit.com",  days: [1,2,3,4,5], timerMinutes: 30 },
+    { domain: "youtube.com", days: [0,1,2,3,4,5,6], timerMinutes: 0 },
+  ];
+
+  test("encuentra entrada por dominio exacto", () => {
+    const entry = findSiteEntry("reddit.com", sites);
+    expect(entry?.domain).toBe("reddit.com");
+  });
+
+  test("encuentra entrada ignorando www del hostname", () => {
+    const entry = findSiteEntry("www.reddit.com".replace(/^www\./, ""), sites);
+    expect(entry?.domain).toBe("reddit.com");
+  });
+
+  test("encuentra entrada para subdominio del dominio bloqueado", () => {
+    const entry = findSiteEntry("old.reddit.com", sites);
+    expect(entry?.domain).toBe("reddit.com");
+  });
+
+  test("retorna null si no hay match", () => {
+    expect(findSiteEntry("github.com", sites)).toBeNull();
+  });
+});
+
+// ─── shouldAutoStart ──────────────────────────────────────────────────────────
+
+describe("shouldAutoStart", () => {
+  const TODAY = "2026-06-07";
+  const YESTERDAY = "2026-06-06";
+  const entry30 = { domain: "reddit.com", days: [1,2,3,4,5], timerMinutes: 30 };
+  const entry0  = { domain: "reddit.com", days: [1,2,3,4,5], timerMinutes: 0 };
+
+  test("retorna true si timerMinutes > 0 y no se usó hoy", () => {
+    expect(shouldAutoStart("reddit.com", entry30, {}, TODAY)).toBe(true);
+  });
+
+  test("retorna false si ya se usó hoy", () => {
+    expect(shouldAutoStart("reddit.com", entry30, { "reddit.com": TODAY }, TODAY)).toBe(false);
+  });
+
+  test("retorna true si la fecha guardada es de ayer (nuevo día)", () => {
+    expect(shouldAutoStart("reddit.com", entry30, { "reddit.com": YESTERDAY }, TODAY)).toBe(true);
+  });
+
+  test("retorna false si timerMinutes === 0", () => {
+    expect(shouldAutoStart("reddit.com", entry0, {}, TODAY)).toBe(false);
+  });
+
+  test("retorna false si siteEntry es null", () => {
+    expect(shouldAutoStart("reddit.com", null, {}, TODAY)).toBe(false);
+  });
+
+  test("retorna false si siteEntry es undefined", () => {
+    expect(shouldAutoStart("reddit.com", undefined, {}, TODAY)).toBe(false);
   });
 });
