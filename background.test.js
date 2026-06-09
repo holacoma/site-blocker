@@ -235,6 +235,13 @@ describe("isBlocked — timer bypass", () => {
     const sites = [{ domain: "reddit.com", days: allDays }];
     expect(isBlocked("https://reddit.com/", sites, undefined)).toBe(true);
   });
+
+  test("el timer bajo el dominio canónico aplica a subdominios (web.facebook.com)", () => {
+    mockDay(1);
+    const sites = [{ domain: "facebook.com", days: allDays }];
+    const activeTimers = { "facebook.com": Date.now() + 60_000 };
+    expect(isBlocked("https://web.facebook.com/", sites, activeTimers)).toBe(false);
+  });
 });
 
 // ─── findSiteEntry ────────────────────────────────────────────────────────────

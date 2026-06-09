@@ -78,12 +78,12 @@ function isBlocked(url, blockedSites, activeTimers = {}) {
   try {
     if (isAlwaysAllowed(url)) return false;
     const hostname = new URL(url).hostname.replace(/^www\./, "");
-    const expiry = activeTimers[hostname];
-    if (expiry && Date.now() < expiry) return false;
     return blockedSites.some((entry) => {
       if (!isActiveToday(entry)) return false;
       const clean = entry.domain.replace(/^www\./, "");
-      return hostname === clean || hostname.endsWith("." + clean);
+      if (hostname !== clean && !hostname.endsWith("." + clean)) return false;
+      const expiry = activeTimers[clean];
+      return !(expiry && Date.now() < expiry);
     });
   } catch {
     return false;
@@ -104,6 +104,7 @@ chrome.webNavigation.onCommitted.addListener((details) => {
   if (details.frameId !== 0) return;
   try {
     const hostname = new URL(details.url).hostname.replace(/^www\./, "");
+    console.log("[SB] onCommitted tab=" + details.tabId + " hostname=" + hostname);
     chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
       tabHostnames[String(details.tabId)] = hostname;
       chrome.storage.session.set({ tabHostnames });
@@ -128,37 +129,47 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
 
   chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
     const oldHostname = tabHostnames[String(details.tabId)] ?? "";
+    console.log("[SB] onBeforeNavigate tab=" + details.tabId + " old=" + (oldHostname || "(none)") + " -> new=" + newHostname);
 
     getFullState((sites, activeTimers, usedTimerDates, pausedTimers) => {
-      // Pause timer when leaving a timed domain for a different domain
+      console.log("[SB] state: activeTimers=" + JSON.stringify(activeTimers) + " pausedTimers=" + JSON.stringify(pausedTimers));
+
       const oldEntry = oldHostname ? findSiteEntry(oldHostname, sites) : null;
       const newEntry = findSiteEntry(newHostname, sites);
       const sameDomain = oldEntry && newEntry && oldEntry.domain === newEntry.domain;
 
-      if (!sameDomain && oldEntry && activeTimers[oldHostname]) {
-        const remaining = activeTimers[oldHostname] - Date.now();
-        if (remaining > 0) pausedTimers[oldHostname] = remaining;
-        delete activeTimers[oldHostname];
+      // Use the canonical domain from the blocked list as the storage key,
+      // so that subdomains (e.g. web.facebook.com) share the same timer as facebook.com.
+      const oldDomain = oldEntry ? oldEntry.domain.replace(/^www\./, "") : "";
+      const newDomain = newEntry ? newEntry.domain.replace(/^www\./, "") : newHostname;
+
+      if (!sameDomain && oldDomain && activeTimers[oldDomain]) {
+        const remaining = activeTimers[oldDomain] - Date.now();
+        console.log("[SB] PAUSING " + oldDomain + " remaining=" + Math.round(remaining / 1000) + "s");
+        if (remaining > 0) pausedTimers[oldDomain] = remaining;
+        delete activeTimers[oldDomain];
         chrome.storage.local.set({ activeTimers, pausedTimers });
+      } else {
+        console.log("[SB] no pause: oldEntry=" + !!oldEntry + " sameDomain=" + sameDomain + " activeTimer=" + !!activeTimers[oldDomain]);
       }
 
       if (!isBlocked(details.url, sites, activeTimers)) return;
 
       // Resume a paused timer
-      if (pausedTimers[newHostname] > 0) {
-        activeTimers[newHostname] = Date.now() + pausedTimers[newHostname];
-        delete pausedTimers[newHostname];
+      if (pausedTimers[newDomain] > 0) {
+        console.log("[SB] RESUMING " + newDomain + " remaining=" + Math.round(pausedTimers[newDomain] / 1000) + "s");
+        activeTimers[newDomain] = Date.now() + pausedTimers[newDomain];
+        delete pausedTimers[newDomain];
         chrome.storage.local.set({ activeTimers, pausedTimers });
         return;
       }
 
       // Auto-start or block
-      const siteEntry = findSiteEntry(newHostname, sites);
       const today = getToday();
 
-      if (shouldAutoStart(newHostname, siteEntry, usedTimerDates, today)) {
-        activeTimers[newHostname] = Date.now() + siteEntry.timerMinutes * 60 * 1000;
-        usedTimerDates[newHostname] = today;
+      if (shouldAutoStart(newDomain, newEntry, usedTimerDates, today)) {
+        activeTimers[newDomain] = Date.now() + newEntry.timerMinutes * 60 * 1000;
+        usedTimerDates[newDomain] = today;
         chrome.storage.local.set({ activeTimers, usedTimerDates });
         return;
       }
