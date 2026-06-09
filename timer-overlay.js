@@ -2,9 +2,25 @@
   const hostname = location.hostname.replace(/^www\./, "");
   if (!hostname) return;
 
+  let started = false;
+
+  function startIfValid(expiry) {
+    if (started || !expiry || Date.now() >= expiry) return;
+    started = true;
+    chrome.storage.onChanged.removeListener(onStorageChange);
+    initNormalPhase(expiry);
+  }
+
+  function onStorageChange(changes, area) {
+    if (area !== "local" || !changes.activeTimers) return;
+    chrome.runtime.sendMessage({ type: "GET_TIMER_STATE", domain: hostname }, (resp) => {
+      startIfValid(resp?.expiry);
+    });
+  }
+  chrome.storage.onChanged.addListener(onStorageChange);
+
   chrome.runtime.sendMessage({ type: "GET_TIMER_STATE", domain: hostname }, (resp) => {
-    if (!resp || !resp.expiry || Date.now() >= resp.expiry) return;
-    initNormalPhase(resp.expiry);
+    startIfValid(resp?.expiry);
   });
 
   function initNormalPhase(expiry) {

@@ -17,5 +17,10 @@ global.chrome = {
     get: jest.fn(),
     query: jest.fn().mockImplementation((_q, cb) => cb([])),
     onRemoved: { addListener: jest.fn() },
+    onActivated: { addListener: jest.fn() },
+  },
+  windows: {
+    onFocusChanged: { addListener: jest.fn() },
+    WINDOW_ID_NONE: -1,
   },
 };

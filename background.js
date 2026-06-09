@@ -98,6 +98,39 @@ if (typeof module !== "undefined") {
   };
 }
 
+function pauseTimerForTab(tabId) {
+  chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
+    const hostname = tabHostnames[String(tabId)];
+    if (!hostname) return;
+    getFullState((sites, activeTimers, _used, pausedTimers) => {
+      const entry = findSiteEntry(hostname, sites);
+      if (!entry) return;
+      const domain = entry.domain.replace(/^www\./, "");
+      if (!activeTimers[domain]) return;
+      const remaining = activeTimers[domain] - Date.now();
+      if (remaining > 0) pausedTimers[domain] = remaining;
+      delete activeTimers[domain];
+      chrome.storage.local.set({ activeTimers, pausedTimers });
+    });
+  });
+}
+
+function resumeTimerForTab(tabId) {
+  chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
+    const hostname = tabHostnames[String(tabId)];
+    if (!hostname) return;
+    getFullState((sites, activeTimers, _used, pausedTimers) => {
+      const entry = findSiteEntry(hostname, sites);
+      if (!entry) return;
+      const domain = entry.domain.replace(/^www\./, "");
+      if (!(pausedTimers[domain] > 0)) return;
+      activeTimers[domain] = Date.now() + pausedTimers[domain];
+      delete pausedTimers[domain];
+      chrome.storage.local.set({ activeTimers, pausedTimers });
+    });
+  });
+}
+
 // Track the last committed hostname per tab in storage.session so the value
 // survives service-worker restarts within the same browser session.
 chrome.webNavigation.onCommitted.addListener((details) => {
@@ -113,10 +146,44 @@ chrome.webNavigation.onCommitted.addListener((details) => {
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => {
-  chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
-    delete tabHostnames[String(tabId)];
-    chrome.storage.session.set({ tabHostnames });
+  pauseTimerForTab(tabId);
+  chrome.storage.session.get({ tabHostnames: {}, activeTabPerWindow: {} }, (data) => {
+    delete data.tabHostnames[String(tabId)];
+    for (const [wid, tid] of Object.entries(data.activeTabPerWindow)) {
+      if (tid === tabId) delete data.activeTabPerWindow[wid];
+    }
+    chrome.storage.session.set({ tabHostnames: data.tabHostnames, activeTabPerWindow: data.activeTabPerWindow });
   });
+});
+
+chrome.tabs.onActivated.addListener(({ tabId, windowId }) => {
+  chrome.storage.session.get({ activeTabPerWindow: {} }, (data) => {
+    const prevTabId = data.activeTabPerWindow[String(windowId)];
+    data.activeTabPerWindow[String(windowId)] = tabId;
+    chrome.storage.session.set({ activeTabPerWindow: data.activeTabPerWindow });
+    if (prevTabId && prevTabId !== tabId) pauseTimerForTab(prevTabId);
+    resumeTimerForTab(tabId);
+  });
+});
+
+chrome.windows.onFocusChanged.addListener((windowId) => {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    chrome.storage.local.get({ activeTimers: {}, pausedTimers: {} }, (data) => {
+      let changed = false;
+      for (const domain of Object.keys(data.activeTimers)) {
+        const remaining = data.activeTimers[domain] - Date.now();
+        if (remaining > 0) data.pausedTimers[domain] = remaining;
+        delete data.activeTimers[domain];
+        changed = true;
+      }
+      if (changed) chrome.storage.local.set({ activeTimers: data.activeTimers, pausedTimers: data.pausedTimers });
+    });
+  } else {
+    chrome.storage.session.get({ activeTabPerWindow: {} }, ({ activeTabPerWindow }) => {
+      const activeTabId = activeTabPerWindow[String(windowId)];
+      if (activeTabId) resumeTimerForTab(activeTabId);
+    });
+  }
 });
 
 chrome.webNavigation.onBeforeNavigate.addListener((details) => {
@@ -207,8 +274,13 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true;
   }
   if (msg.type === "GET_TIMER_STATE") {
-    chrome.storage.local.get({ activeTimers: {} }, ({ activeTimers }) => {
-      sendResponse({ expiry: activeTimers[msg.domain] ?? null });
+    chrome.storage.sync.get({ blockedSites: [] }, ({ blockedSites }) => {
+      const sites = normalizeSites(blockedSites);
+      const entry = findSiteEntry(msg.domain, sites);
+      const domain = entry ? entry.domain.replace(/^www\./, "") : msg.domain;
+      chrome.storage.local.get({ activeTimers: {} }, ({ activeTimers }) => {
+        sendResponse({ expiry: activeTimers[domain] ?? null });
+      });
     });
     return true;
   }

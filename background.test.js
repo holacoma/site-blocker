@@ -8,6 +8,12 @@ const {
   shouldAutoStart,
 } = require("./background");
 
+// Capture new handlers immediately — before any afterEach clears mock.calls
+const _onActivatedHandler = chrome.tabs.onActivated.addListener.mock.calls[0][0];
+const _onFocusChangedHandler = chrome.windows.onFocusChanged.addListener.mock.calls[0][0];
+const _onRemovedCalls = chrome.tabs.onRemoved.addListener.mock.calls;
+const _onRemovedHandler = _onRemovedCalls[_onRemovedCalls.length - 1][0];
+
 // ─── normalizeSites ───────────────────────────────────────────────────────────
 
 describe("normalizeSites", () => {
@@ -354,6 +360,173 @@ describe("onBeforeNavigate — pause timer on departure", () => {
 
     const setCalls = chrome.storage.local.set.mock.calls;
     const pauseCall = setCalls.find(([data]) => data.pausedTimers?.["reddit.com"] > 0);
+    expect(pauseCall).toBeUndefined();
+  });
+});
+
+// ─── onActivated / onFocusChanged / onRemoved — tab-switch pause/resume ───────
+
+describe("tab-switch pause/resume", () => {
+  const allDays = [0, 1, 2, 3, 4, 5, 6];
+  const SITES = [{ domain: "reddit.com", days: allDays, timerMinutes: 30 }];
+
+  const onActivatedHandler = _onActivatedHandler;
+  const onFocusChangedHandler = _onFocusChangedHandler;
+  const onRemovedHandler = _onRemovedHandler;
+
+  afterEach(() => jest.clearAllMocks());
+
+  function mockSessionGet(tabHostnames, activeTabPerWindow = {}) {
+    chrome.storage.session.get.mockImplementation((defaults, cb) => {
+      if ("activeTabPerWindow" in defaults) cb({ activeTabPerWindow });
+      else if ("tabHostnames" in defaults && "activeTabPerWindow" in defaults) cb({ tabHostnames, activeTabPerWindow });
+      else cb({ tabHostnames });
+    });
+  }
+
+  // ── onActivated ──────────────────────────────────────────────────────────────
+
+  test("onActivated: pauses old tab's timer when switching away", () => {
+    const expiry = Date.now() + 60_000;
+    mockSessionGet({ "10": "reddit.com" }, { "1": 10 });
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: { "reddit.com": expiry }, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    onActivatedHandler({ tabId: 20, windowId: 1 });
+
+    const setCalls = chrome.storage.local.set.mock.calls;
+    const pauseCall = setCalls.find(([d]) => d.pausedTimers?.["reddit.com"] > 0);
+    expect(pauseCall).toBeDefined();
+    expect(pauseCall[0].activeTimers["reddit.com"]).toBeUndefined();
+  });
+
+  test("onActivated: resumes new tab's timer when switching to it", () => {
+    const remaining = 45_000;
+    mockSessionGet({ "20": "reddit.com" }, { "1": 10 });
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: {}, usedTimerDates: {}, pausedTimers: { "reddit.com": remaining } })
+    );
+
+    onActivatedHandler({ tabId: 20, windowId: 1 });
+
+    const setCalls = chrome.storage.local.set.mock.calls;
+    const resumeCall = setCalls.find(([d]) => d.activeTimers?.["reddit.com"] > 0);
+    expect(resumeCall).toBeDefined();
+    expect(resumeCall[0].pausedTimers?.["reddit.com"]).toBeUndefined();
+  });
+
+  test("onActivated: no-op when old tab has no active timer", () => {
+    mockSessionGet({ "10": "reddit.com" }, { "1": 10 });
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: {}, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    onActivatedHandler({ tabId: 20, windowId: 1 });
+
+    const setCalls = chrome.storage.local.set.mock.calls;
+    const pauseCall = setCalls.find(([d]) => d.pausedTimers?.["reddit.com"] > 0);
+    expect(pauseCall).toBeUndefined();
+  });
+
+  test("onActivated: no-op resume when new tab has no paused timer", () => {
+    mockSessionGet({ "20": "reddit.com" }, { "1": 10 });
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: {}, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    onActivatedHandler({ tabId: 20, windowId: 1 });
+
+    const setCalls = chrome.storage.local.set.mock.calls;
+    const resumeCall = setCalls.find(([d]) => d.activeTimers?.["reddit.com"] > 0);
+    expect(resumeCall).toBeUndefined();
+  });
+
+  // ── onFocusChanged ───────────────────────────────────────────────────────────
+
+  test("onFocusChanged(WINDOW_ID_NONE): pauses all active timers", () => {
+    const now = Date.now();
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({
+        activeTimers: { "reddit.com": now + 60_000, "twitter.com": now + 30_000 },
+        pausedTimers: {},
+      })
+    );
+
+    onFocusChangedHandler(-1);
+
+    const setCalls = chrome.storage.local.set.mock.calls;
+    const call = setCalls.find(([d]) => d.pausedTimers?.["reddit.com"] > 0);
+    expect(call).toBeDefined();
+    expect(call[0].pausedTimers["twitter.com"]).toBeGreaterThan(0);
+    expect(Object.keys(call[0].activeTimers)).toHaveLength(0);
+  });
+
+  test("onFocusChanged(windowId): resumes active tab for that window", () => {
+    const remaining = 50_000;
+    chrome.storage.session.get.mockImplementation((_d, cb) => {
+      if ("activeTabPerWindow" in _d) cb({ activeTabPerWindow: { "1": 42 } });
+      else cb({ tabHostnames: { "42": "reddit.com" } });
+    });
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: {}, usedTimerDates: {}, pausedTimers: { "reddit.com": remaining } })
+    );
+
+    onFocusChangedHandler(1);
+
+    const setCalls = chrome.storage.local.set.mock.calls;
+    const resumeCall = setCalls.find(([d]) => d.activeTimers?.["reddit.com"] > 0);
+    expect(resumeCall).toBeDefined();
+  });
+
+  // ── onRemoved ────────────────────────────────────────────────────────────────
+
+  test("onRemoved: pauses timer for closed tab", () => {
+    const expiry = Date.now() + 60_000;
+    chrome.storage.session.get.mockImplementation((defaults, cb) => {
+      if ("tabHostnames" in defaults && "activeTabPerWindow" in defaults)
+        cb({ tabHostnames: { "5": "reddit.com" }, activeTabPerWindow: { "1": 5 } });
+      else if ("activeTabPerWindow" in defaults)
+        cb({ activeTabPerWindow: { "1": 5 } });
+      else
+        cb({ tabHostnames: { "5": "reddit.com" } });
+    });
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: { "reddit.com": expiry }, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    onRemovedHandler(5, { windowId: 1 });
+
+    const setCalls = chrome.storage.local.set.mock.calls;
+    const pauseCall = setCalls.find(([d]) => d.pausedTimers?.["reddit.com"] > 0);
+    expect(pauseCall).toBeDefined();
+    expect(pauseCall[0].activeTimers["reddit.com"]).toBeUndefined();
+  });
+
+  test("onRemoved: no-op when closed tab has no active timer", () => {
+    chrome.storage.session.get.mockImplementation((defaults, cb) => {
+      if ("tabHostnames" in defaults && "activeTabPerWindow" in defaults)
+        cb({ tabHostnames: { "5": "reddit.com" }, activeTabPerWindow: {} });
+      else if ("activeTabPerWindow" in defaults)
+        cb({ activeTabPerWindow: {} });
+      else
+        cb({ tabHostnames: { "5": "reddit.com" } });
+    });
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: {}, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    onRemovedHandler(5, { windowId: 1 });
+
+    const setCalls = chrome.storage.local.set.mock.calls;
+    const pauseCall = setCalls.find(([d]) => d.pausedTimers?.["reddit.com"] > 0);
     expect(pauseCall).toBeUndefined();
   });
 });
