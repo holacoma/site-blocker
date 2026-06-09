@@ -139,7 +139,7 @@
       if (msLeft <= 0) {
         clearInterval(ticker);
         window.location.href = chrome.runtime.getURL(
-          "blocked.html?site=" + encodeURIComponent(location.hostname)
+          "pages/blocked/blocked.html?site=" + encodeURIComponent(location.hostname)
         );
       }
     }, 16);
