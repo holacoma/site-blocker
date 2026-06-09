@@ -98,6 +98,26 @@ if (typeof module !== "undefined") {
   };
 }
 
+// Track the last committed hostname per tab in storage.session so the value
+// survives service-worker restarts within the same browser session.
+chrome.webNavigation.onCommitted.addListener((details) => {
+  if (details.frameId !== 0) return;
+  try {
+    const hostname = new URL(details.url).hostname.replace(/^www\./, "");
+    chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
+      tabHostnames[String(details.tabId)] = hostname;
+      chrome.storage.session.set({ tabHostnames });
+    });
+  } catch {}
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
+    delete tabHostnames[String(tabId)];
+    chrome.storage.session.set({ tabHostnames });
+  });
+});
+
 chrome.webNavigation.onBeforeNavigate.addListener((details) => {
   if (details.frameId !== 0) return;
   if (details.url.startsWith(BLOCKED_PAGE)) return;
@@ -106,10 +126,8 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
   try { newHostname = new URL(details.url).hostname.replace(/^www\./, ""); }
   catch { return; }
 
-  chrome.tabs.get(details.tabId, (tab) => {
-    let oldHostname = "";
-    try { if (tab?.url) oldHostname = new URL(tab.url).hostname.replace(/^www\./, ""); }
-    catch {}
+  chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
+    const oldHostname = tabHostnames[String(details.tabId)] ?? "";
 
     getFullState((sites, activeTimers, usedTimerDates, pausedTimers) => {
       // Pause timer when leaving a timed domain for a different domain

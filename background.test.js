@@ -265,6 +265,92 @@ describe("findSiteEntry", () => {
   });
 });
 
+// ─── onBeforeNavigate — pause on departure ───────────────────────────────────
+
+describe("onBeforeNavigate — pause timer on departure", () => {
+  const allDays = [0, 1, 2, 3, 4, 5, 6];
+  const SITES = [{ domain: "reddit.com", days: allDays, timerMinutes: 30 }];
+
+  let beforeNavigateHandler;
+  let committedHandler;
+
+  beforeAll(() => {
+    beforeNavigateHandler =
+      chrome.webNavigation.onBeforeNavigate.addListener.mock.calls[0][0];
+    committedHandler =
+      chrome.webNavigation.onCommitted.addListener.mock.calls[0][0];
+  });
+
+  afterEach(() => jest.clearAllMocks());
+
+  test("onCommitted registra el hostname del tab en storage.session", () => {
+    chrome.storage.session.get.mockImplementation((_d, cb) => cb({ tabHostnames: {} }));
+    committedHandler({ tabId: 42, frameId: 0, url: "https://reddit.com/r/programming" });
+    const setCall = chrome.storage.session.set.mock.calls[0];
+    expect(setCall[0].tabHostnames["42"]).toBe("reddit.com");
+  });
+
+  test("pausa el timer al navegar fuera del dominio bloqueado", () => {
+    const expiry = Date.now() + 60_000;
+
+    chrome.storage.session.get.mockImplementation((_d, cb) =>
+      cb({ tabHostnames: { "1": "reddit.com" } })
+    );
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: { "reddit.com": expiry }, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    beforeNavigateHandler({ tabId: 1, frameId: 0, url: "https://github.com/" });
+
+    const setCalls = chrome.storage.local.set.mock.calls;
+    const pauseCall = setCalls.find(([data]) => data.pausedTimers?.["reddit.com"] > 0);
+    expect(pauseCall).toBeDefined();
+    expect(pauseCall[0].activeTimers["reddit.com"]).toBeUndefined();
+  });
+
+  test("reanuda el timer al volver al dominio bloqueado", () => {
+    const remaining = 45_000;
+
+    chrome.storage.session.get.mockImplementation((_d, cb) =>
+      cb({ tabHostnames: { "1": "github.com" } })
+    );
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({
+        activeTimers: {},
+        usedTimerDates: { "reddit.com": "2026-06-08" },
+        pausedTimers: { "reddit.com": remaining },
+      })
+    );
+
+    beforeNavigateHandler({ tabId: 1, frameId: 0, url: "https://reddit.com/" });
+
+    const setCalls = chrome.storage.local.set.mock.calls;
+    const resumeCall = setCalls.find(([data]) => data.activeTimers?.["reddit.com"] > 0);
+    expect(resumeCall).toBeDefined();
+    expect(resumeCall[0].pausedTimers?.["reddit.com"]).toBeUndefined();
+  });
+
+  test("no pausa si la navegación es dentro del mismo dominio bloqueado", () => {
+    const expiry = Date.now() + 60_000;
+
+    chrome.storage.session.get.mockImplementation((_d, cb) =>
+      cb({ tabHostnames: { "1": "reddit.com" } })
+    );
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: { "reddit.com": expiry }, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    beforeNavigateHandler({ tabId: 1, frameId: 0, url: "https://reddit.com/r/programming" });
+
+    const setCalls = chrome.storage.local.set.mock.calls;
+    const pauseCall = setCalls.find(([data]) => data.pausedTimers?.["reddit.com"] > 0);
+    expect(pauseCall).toBeUndefined();
+  });
+});
+
 // ─── shouldAutoStart ──────────────────────────────────────────────────────────
 
 describe("shouldAutoStart", () => {
