@@ -7,14 +7,20 @@
   "permissions": [
     "storage",
     "webNavigation",
-    "tabs"
+    "tabs",
+    "windows"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "src/background.js",
+    "type": "module"
   },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "pages/popup/popup.html",
     "default_title": "Site Blocker"
+  },
+  "options_ui": {
+    "page": "pages/options/options.html",
+    "open_in_tab": true
   },
   "icons": {
     "128": "icon.png"
@@ -22,12 +28,12 @@
   "content_scripts": [
     {
       "matches": ["https://music.youtube.com/*"],
-      "js": ["ytmusic.js"],
+      "js": ["content/ytmusic.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["<all_urls>"],
-      "js": ["timer-overlay.js"],
+      "js": ["content/timer-overlay.js"],
       "run_at": "document_end",
       "all_frames": false
     }

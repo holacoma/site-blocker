@@ -2,13 +2,9 @@
   "name": "site-blocker",
   "private": true,
   "scripts": {
-    "test": "jest"
+    "test": "vitest run"
   },
   "devDependencies": {
-    "jest": "^29.0.0"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "setupFiles": ["./jest.setup.js"]
+    "vitest": "^2.0.0"
   }
 }
