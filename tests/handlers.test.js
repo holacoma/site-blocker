@@ -12,6 +12,8 @@ const onFocusChangedHandler =
 const onRemovedCalls = chrome.tabs.onRemoved.addListener.mock.calls;
 const onRemovedHandler = onRemovedCalls[onRemovedCalls.length - 1][0];
 
+const onMessageHandler = chrome.runtime.onMessage.addListener.mock.calls[0][0];
+
 const allDays = [0, 1, 2, 3, 4, 5, 6];
 const SITES = [{ domain: "reddit.com", days: allDays, timerMinutes: 30 }];
 
@@ -76,6 +78,25 @@ describe("onBeforeNavigate — pause timer on departure", () => {
     const resumeCall = setCalls.find(([data]) => data.activeTimers?.["reddit.com"] > 0);
     expect(resumeCall).toBeDefined();
     expect(resumeCall[0].pausedTimers?.["reddit.com"]).toBeUndefined();
+  });
+
+  test("pausa el timer al navegar a una página always-allowed (youtube.com → music.youtube.com)", () => {
+    const expiry = Date.now() + 60_000;
+    const ytSites = [{ domain: "youtube.com", days: allDays, timerMinutes: 30 }];
+    chrome.storage.session.get.mockImplementation((_d, cb) =>
+      cb({ tabHostnames: { "1": "youtube.com" } })
+    );
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: ytSites }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: { "youtube.com": expiry }, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    beforeNavigateHandler({ tabId: 1, frameId: 0, url: "https://music.youtube.com/" });
+
+    const pauseCall = chrome.storage.local.set.mock.calls
+      .find(([d]) => d.pausedTimers?.["youtube.com"] > 0);
+    expect(pauseCall).toBeDefined();
+    expect(pauseCall[0].activeTimers["youtube.com"]).toBeUndefined();
   });
 
   test("no pausa si la navegación es dentro del mismo dominio bloqueado", () => {
@@ -205,6 +226,20 @@ describe("onFocusChanged", () => {
 
     const setCalls = chrome.storage.local.set.mock.calls;
     expect(setCalls.find(([d]) => d.activeTimers?.["reddit.com"] > 0)).toBeDefined();
+  });
+});
+
+// ─── onRemoved ────────────────────────────────────────────────────────────────
+
+// ─── GET_TIMER_STATE ──────────────────────────────────────────────────────────
+
+describe("GET_TIMER_STATE message handler", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  test("retorna null para dominios always-allowed aunque el padre tenga timer activo", () => {
+    const sendResponse = vi.fn();
+    onMessageHandler({ type: "GET_TIMER_STATE", domain: "music.youtube.com" }, {}, sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({ expiry: null });
   });
 });
 
