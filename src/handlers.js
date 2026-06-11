@@ -183,9 +183,12 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     }
     getBlockedSites((sites) => {
       const site = BlockedSite.findMatch(msg.domain, sites);
-      const domain = site ? site.domain : msg.domain;
+      if (!site || !site.isActiveToday()) {
+        sendResponse({ expiry: null });
+        return;
+      }
       chrome.storage.local.get({ activeTimers: {} }, ({ activeTimers }) => {
-        sendResponse({ expiry: activeTimers[domain] ?? null });
+        sendResponse({ expiry: activeTimers[site.domain] ?? null });
       });
     });
     return true;
