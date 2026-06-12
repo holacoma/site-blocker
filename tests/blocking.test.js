@@ -1,4 +1,4 @@
-import { ALWAYS_ALLOWED, isAlwaysAllowed, isBlocked } from "../src/blocking.js";
+import { isAlwaysAllowed, isBlocked } from "../src/blocking.js";
 import { BlockedSite } from "../shared/BlockedSite.js";
 
 const allDays = [0, 1, 2, 3, 4, 5, 6];
@@ -8,25 +8,25 @@ function sites(...domains) {
 }
 
 describe("isAlwaysAllowed", () => {
-  test("permite dominios en ALWAYS_ALLOWED", () => {
-    expect(isAlwaysAllowed("https://music.youtube.com/watch?v=1")).toBe(true);
-    expect(isAlwaysAllowed("https://accounts.google.com/signin")).toBe(true);
+  test("permite dominios en userExceptions", () => {
+    expect(isAlwaysAllowed("https://music.youtube.com/watch?v=1", ["music.youtube.com"])).toBe(true);
+    expect(isAlwaysAllowed("https://accounts.google.com/signin", ["accounts.google.com"])).toBe(true);
   });
 
-  test("permite music.youtube.com aunque youtube.com esté bloqueado", () => {
-    expect(isAlwaysAllowed("https://music.youtube.com/")).toBe(true);
+  test("permite music.youtube.com con excepción explícita", () => {
+    expect(isAlwaysAllowed("https://music.youtube.com/", ["music.youtube.com"])).toBe(true);
   });
 
-  test("NO permite youtube.com", () => {
-    expect(isAlwaysAllowed("https://www.youtube.com/")).toBe(false);
+  test("NO permite youtube.com cuando solo music.youtube.com es excepción", () => {
+    expect(isAlwaysAllowed("https://www.youtube.com/", ["music.youtube.com"])).toBe(false);
   });
 
-  test("NO permite studio.youtube.com", () => {
-    expect(isAlwaysAllowed("https://studio.youtube.com/")).toBe(false);
+  test("NO permite studio.youtube.com cuando solo music.youtube.com es excepción", () => {
+    expect(isAlwaysAllowed("https://studio.youtube.com/", ["music.youtube.com"])).toBe(false);
   });
 
   test("ignora prefijo www", () => {
-    expect(isAlwaysAllowed("https://www.music.youtube.com/")).toBe(true);
+    expect(isAlwaysAllowed("https://www.music.youtube.com/", ["music.youtube.com"])).toBe(true);
   });
 
   test("retorna false para URLs inválidas", () => {
@@ -34,13 +34,18 @@ describe("isAlwaysAllowed", () => {
   });
 
   test("permite reddit.com/chat/room/ y subrutas", () => {
-    expect(isAlwaysAllowed("https://reddit.com/chat/room/12345")).toBe(true);
-    expect(isAlwaysAllowed("https://www.reddit.com/chat/room/abc")).toBe(true);
+    expect(isAlwaysAllowed("https://reddit.com/chat/room/12345", ["reddit.com/chat/room/"])).toBe(true);
+    expect(isAlwaysAllowed("https://www.reddit.com/chat/room/abc", ["reddit.com/chat/room/"])).toBe(true);
   });
 
   test("NO permite reddit.com fuera de /chat/room/", () => {
-    expect(isAlwaysAllowed("https://reddit.com/r/programming")).toBe(false);
-    expect(isAlwaysAllowed("https://reddit.com/chat/")).toBe(false);
+    expect(isAlwaysAllowed("https://reddit.com/r/programming", ["reddit.com/chat/room/"])).toBe(false);
+    expect(isAlwaysAllowed("https://reddit.com/chat/", ["reddit.com/chat/room/"])).toBe(false);
+  });
+
+  test("sin excepciones ningún dominio está permitido", () => {
+    expect(isAlwaysAllowed("https://music.youtube.com/")).toBe(false);
+    expect(isAlwaysAllowed("https://accounts.google.com/")).toBe(false);
   });
 });
 
@@ -53,12 +58,16 @@ describe("isBlocked", () => {
     expect(isBlocked("https://www.reddit.com/", sites("reddit.com"))).toBe(true);
   });
 
-  test("bloquea subdominios no permitidos", () => {
+  test("bloquea subdominios sin excepción", () => {
     expect(isBlocked("https://studio.youtube.com/", sites("youtube.com"))).toBe(true);
   });
 
-  test("NO bloquea music.youtube.com aunque youtube.com esté bloqueado", () => {
-    expect(isBlocked("https://music.youtube.com/", sites("youtube.com"))).toBe(false);
+  test("NO bloquea subdominio que es excepción del sitio", () => {
+    const yt = BlockedSite.from({
+      domain: "youtube.com", days: allDays, timerMinutes: 0,
+      exceptions: ["music.youtube.com"],
+    });
+    expect(isBlocked("https://music.youtube.com/", [yt])).toBe(false);
   });
 
   test("NO bloquea si hoy no está en el schedule", () => {
@@ -78,12 +87,33 @@ describe("isBlocked", () => {
     expect(isBlocked("not-a-url", sites("reddit.com"))).toBe(false);
   });
 
-  test("NO bloquea reddit.com/chat/room/", () => {
-    expect(isBlocked("https://reddit.com/chat/room/123", sites("reddit.com"))).toBe(false);
+  test("NO bloquea path que es excepción del sitio", () => {
+    const reddit = BlockedSite.from({
+      domain: "reddit.com", days: allDays, timerMinutes: 0,
+      exceptions: ["reddit.com/chat/room/"],
+    });
+    expect(isBlocked("https://reddit.com/chat/room/123", [reddit])).toBe(false);
   });
 
-  test("sigue bloqueando reddit.com fuera de /chat/room/", () => {
-    expect(isBlocked("https://reddit.com/r/news", sites("reddit.com"))).toBe(true);
+  test("sigue bloqueando paths fuera de la excepción", () => {
+    const reddit = BlockedSite.from({
+      domain: "reddit.com", days: allDays, timerMinutes: 0,
+      exceptions: ["reddit.com/chat/room/"],
+    });
+    expect(isBlocked("https://reddit.com/r/news", [reddit])).toBe(true);
+  });
+
+  test("excepción de un sitio no afecta a otro sitio", () => {
+    const yt = BlockedSite.from({
+      domain: "youtube.com", days: allDays, timerMinutes: 0,
+      exceptions: ["music.youtube.com"],
+    });
+    const reddit = BlockedSite.from({
+      domain: "reddit.com", days: allDays, timerMinutes: 0,
+      exceptions: [],
+    });
+    expect(isBlocked("https://reddit.com/", [yt, reddit])).toBe(true);
+    expect(isBlocked("https://music.youtube.com/", [yt, reddit])).toBe(false);
   });
 });
 

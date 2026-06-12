@@ -163,6 +163,21 @@
     .timer-status.running { color: #6dbb6d; }
     .timer-status.paused  { color: #888; }
     .timer-status.used    { color: #444; }
+
+    /* Exceptions feature */
+    .exc-toggle { background: none; border: none; cursor: pointer; font-size: 0.75rem; color: #555; padding: 0; }
+    .exc-toggle.active { color: #6dbb6d; }
+    .exc-toggle:hover { color: #888; }
+    .exc-section { margin-top: 0.4rem; }
+    .exc-list { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0.4rem; }
+    .exc-tag { display: inline-flex; align-items: center; gap: 3px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; font-family: monospace; color: #888; }
+    .exc-tag-del { background: none; border: none; color: #444; cursor: pointer; font-size: 0.85rem; padding: 0; line-height: 1; }
+    .exc-tag-del:hover { color: #c0392b; }
+    .exc-add-row { display: flex; gap: 4px; }
+    .exc-input { flex: 1; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; color: #e0e0e0; padding: 0.2rem 0.4rem; font-size: 0.75rem; font-family: monospace; outline: none; }
+    .exc-input:focus { border-color: #444; }
+    .exc-add-btn { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; color: #666; cursor: pointer; font-size: 0.75rem; padding: 0.2rem 0.5rem; }
+    .exc-add-btn:hover { color: #ccc; }
   </style>
 </head>
 <body>

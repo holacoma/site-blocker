@@ -1,8 +1,9 @@
 export class BlockedSite {
-  constructor({ domain, days = [0, 1, 2, 3, 4, 5, 6], timerMinutes = 0 }) {
+  constructor({ domain, days = [0, 1, 2, 3, 4, 5, 6], timerMinutes = 0, exceptions = [] }) {
     this.domain = domain.replace(/^www\./, "");
     this.days = days;
     this.timerMinutes = timerMinutes;
+    this.exceptions = exceptions;
   }
 
   isActiveToday() {
@@ -20,7 +21,7 @@ export class BlockedSite {
   }
 
   toJSON() {
-    return { domain: this.domain, days: this.days, timerMinutes: this.timerMinutes };
+    return { domain: this.domain, days: this.days, timerMinutes: this.timerMinutes, exceptions: this.exceptions };
   }
 
   static from(raw) {
