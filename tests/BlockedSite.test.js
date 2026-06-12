@@ -29,11 +29,11 @@ describe("BlockedSite.from", () => {
 describe("BlockedSite.toJSON", () => {
   test("serializa correctamente", () => {
     const s = new BlockedSite({ domain: "reddit.com", days: [1, 2], timerMinutes: 15 });
-    expect(s.toJSON()).toEqual({ domain: "reddit.com", days: [1, 2], timerMinutes: 15 });
+    expect(s.toJSON()).toEqual({ domain: "reddit.com", days: [1, 2], timerMinutes: 15, exceptions: [] });
   });
 
   test("round-trip from -> toJSON", () => {
-    const orig = { domain: "twitter.com", days: [0, 6], timerMinutes: 5 };
+    const orig = { domain: "twitter.com", days: [0, 6], timerMinutes: 5, exceptions: [] };
     expect(BlockedSite.from(orig).toJSON()).toEqual(orig);
   });
 });

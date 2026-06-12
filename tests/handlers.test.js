@@ -15,7 +15,7 @@ const onRemovedHandler = onRemovedCalls[onRemovedCalls.length - 1][0];
 const onMessageHandler = chrome.runtime.onMessage.addListener.mock.calls[0][0];
 
 const allDays = [0, 1, 2, 3, 4, 5, 6];
-const SITES = [{ domain: "reddit.com", days: allDays, timerMinutes: 30 }];
+const SITES = [{ domain: "reddit.com", days: allDays, timerMinutes: 30, exceptions: [] }];
 
 // ─── onCommitted ──────────────────────────────────────────────────────────────
 
@@ -80,9 +80,9 @@ describe("onBeforeNavigate — pause timer on departure", () => {
     expect(resumeCall[0].pausedTimers?.["reddit.com"]).toBeUndefined();
   });
 
-  test("pausa el timer al navegar a una página always-allowed (youtube.com → music.youtube.com)", () => {
+  test("pausa el timer al navegar a excepción del sitio (youtube.com → music.youtube.com)", () => {
     const expiry = Date.now() + 60_000;
-    const ytSites = [{ domain: "youtube.com", days: allDays, timerMinutes: 30 }];
+    const ytSites = [{ domain: "youtube.com", days: allDays, timerMinutes: 30, exceptions: ["music.youtube.com"] }];
     chrome.storage.session.get.mockImplementation((_d, cb) =>
       cb({ tabHostnames: { "1": "youtube.com" } })
     );
@@ -229,15 +229,15 @@ describe("onFocusChanged", () => {
   });
 });
 
-// ─── onRemoved ────────────────────────────────────────────────────────────────
-
 // ─── GET_TIMER_STATE ──────────────────────────────────────────────────────────
 
 describe("GET_TIMER_STATE message handler", () => {
   afterEach(() => vi.clearAllMocks());
 
-  test("retorna null para dominios always-allowed aunque el padre tenga timer activo", () => {
+  test("retorna null para dominios que son excepción del sitio padre", () => {
     const sendResponse = vi.fn();
+    const ytSites = [{ domain: "youtube.com", days: allDays, timerMinutes: 30, exceptions: ["music.youtube.com"] }];
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: ytSites }));
     onMessageHandler({ type: "GET_TIMER_STATE", domain: "music.youtube.com" }, {}, sendResponse);
     expect(sendResponse).toHaveBeenCalledWith({ expiry: null });
   });

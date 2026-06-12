@@ -1,8 +1,9 @@
 import { BlockedSite } from "../../shared/BlockedSite.js";
 import { DaysFeature } from "./features/days.js";
 import { TimerFeature } from "./features/timer.js";
+import { ExceptionsFeature } from "./features/exceptions.js";
 
-const FEATURES = [DaysFeature, TimerFeature];
+const FEATURES = [DaysFeature, TimerFeature, ExceptionsFeature];
 
 const input   = document.getElementById("site-input");
 const addBtn  = document.getElementById("add-btn");

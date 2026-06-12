@@ -95,9 +95,10 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
 
       const oldSite = oldHostname ? BlockedSite.findMatch(oldHostname, sites) : null;
       const newSite = BlockedSite.findMatch(newHostname, sites);
-      // If the destination is always-allowed, treat it as leaving the blocked domain
-      // so the timer pauses (e.g. youtube.com → music.youtube.com)
-      const effectiveNewSite = isAlwaysAllowed(details.url) ? null : newSite;
+      // If the destination is an exception of its parent blocked site,
+      // treat it as leaving the domain so the timer pauses
+      const effectiveNewSite = (newSite && isAlwaysAllowed(details.url, newSite.exceptions))
+        ? null : newSite;
       const sameDomain = oldSite && effectiveNewSite && oldSite.domain === effectiveNewSite.domain;
 
       const oldDomain = oldSite ? oldSite.domain : "";
@@ -177,13 +178,13 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
 
   if (msg.type === "GET_TIMER_STATE") {
-    if (isAlwaysAllowed("https://" + msg.domain + "/")) {
-      sendResponse({ expiry: null });
-      return true;
-    }
     getBlockedSites((sites) => {
       const site = BlockedSite.findMatch(msg.domain, sites);
       if (!site || !site.isActiveToday()) {
+        sendResponse({ expiry: null });
+        return;
+      }
+      if (isAlwaysAllowed("https://" + msg.domain + "/", site.exceptions)) {
         sendResponse({ expiry: null });
         return;
       }
