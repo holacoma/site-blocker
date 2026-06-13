@@ -3,194 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <title>Site Blocker — Configuración</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0d0d0d;
-      color: #e0e0e0;
-      min-height: 100vh;
-      padding: 2rem 1rem;
-    }
-    .page {
-      max-width: 640px;
-      margin: 0 auto;
-    }
-    header {
-      display: flex;
-      align-items: baseline;
-      gap: 0.6rem;
-      margin-bottom: 2rem;
-    }
-    header h1 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: #fff;
-    }
-    header p {
-      font-size: 0.8rem;
-      color: #555;
-    }
-
-    /* Add row */
-    .add-row {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-    }
-    .add-row input {
-      flex: 1;
-      background: #1a1a1a;
-      border: 1px solid #2e2e2e;
-      border-radius: 6px;
-      color: #e0e0e0;
-      padding: 0.55rem 0.8rem;
-      font-size: 0.9rem;
-      outline: none;
-    }
-    .add-row input:focus { border-color: #444; }
-    .add-row input::placeholder { color: #444; }
-    .add-row button {
-      background: #1e1e1e;
-      border: 1px solid #333;
-      border-radius: 6px;
-      color: #ccc;
-      padding: 0.55rem 1rem;
-      cursor: pointer;
-      font-size: 0.9rem;
-      white-space: nowrap;
-    }
-    .add-row button:hover { background: #2a2a2a; color: #fff; }
-
-    /* Site list */
-    ul#site-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
-
-    .empty { color: #444; font-size: 0.85rem; text-align: center; padding: 2rem 0; }
-
-    /* Site card */
-    .site-card {
-      background: #141414;
-      border: 1px solid #222;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.65rem 0.9rem;
-    }
-    .domain-name {
-      font-family: monospace;
-      font-size: 0.95rem;
-      color: #e0e0e0;
-    }
-    .delete-btn {
-      background: none;
-      border: none;
-      color: #444;
-      cursor: pointer;
-      font-size: 1.1rem;
-      padding: 0 0.2rem;
-      line-height: 1;
-    }
-    .delete-btn:hover { color: #c0392b; }
-    .card-separator {
-      height: 1px;
-      background: #1e1e1e;
-    }
-
-    /* Feature boxes */
-    .feature-box {
-      padding: 0.55rem 0.9rem;
-    }
-
-    /* Days feature */
-    .days-box {
-      display: flex;
-      gap: 4px;
-    }
-    .day-btn {
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 4px;
-      color: #444;
-      cursor: pointer;
-      font-size: 0.68rem;
-      font-weight: 600;
-      width: 30px;
-      height: 26px;
-      padding: 0;
-    }
-    .day-btn.active {
-      background: #1a2e1a;
-      border-color: #3d8b3d;
-      color: #6dbb6d;
-    }
-    .day-btn:hover { border-color: #444; color: #888; }
-    .day-btn.active:hover { background: #162616; }
-
-    /* Timer feature */
-    .timer-box { }
-    .timer-row { display: flex; align-items: center; gap: 0.5rem; }
-    .timer-toggle {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1rem;
-      padding: 0;
-      opacity: 0.3;
-      line-height: 1;
-    }
-    .timer-toggle.active { opacity: 1; }
-    .timer-toggle:hover { opacity: 0.7; }
-    .timer-section { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
-    .timer-section input[type="number"] {
-      width: 52px;
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 4px;
-      color: #e0e0e0;
-      padding: 0.2rem 0.3rem;
-      font-size: 0.8rem;
-      font-family: monospace;
-      text-align: center;
-      outline: none;
-    }
-    .timer-section input:focus { border-color: #444; }
-    .timer-label { font-size: 0.75rem; color: #555; }
-    .timer-status { font-size: 0.75rem; font-family: monospace; }
-    .timer-status.running { color: #6dbb6d; }
-    .timer-status.paused  { color: #888; }
-    .timer-status.used    { color: #444; }
-
-    /* Exceptions feature */
-    .exc-toggle { background: none; border: none; cursor: pointer; font-size: 0.75rem; color: #555; padding: 0; }
-    .exc-toggle.active { color: #6dbb6d; }
-    .exc-toggle:hover { color: #888; }
-    .exc-section { margin-top: 0.4rem; }
-    .exc-list { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0.4rem; }
-    .exc-tag { display: inline-flex; align-items: center; gap: 3px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; font-family: monospace; color: #888; }
-    .exc-tag-del { background: none; border: none; color: #444; cursor: pointer; font-size: 0.85rem; padding: 0; line-height: 1; }
-    .exc-tag-del:hover { color: #c0392b; }
-    .exc-add-row { display: flex; gap: 4px; }
-    .exc-input { flex: 1; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; color: #e0e0e0; padding: 0.2rem 0.4rem; font-size: 0.75rem; font-family: monospace; outline: none; }
-    .exc-input:focus { border-color: #444; }
-    .exc-add-btn { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; color: #666; cursor: pointer; font-size: 0.75rem; padding: 0.2rem 0.5rem; }
-    .exc-add-btn:hover { color: #ccc; }
-  </style>
+  <link id="theme-css" rel="stylesheet" href="theme-retro.css" />
 </head>
 <body>
-  <div class="page">
-    <header>
-      <h1>🚫 Site Blocker</h1>
-      <p>Configuración</p>
-    </header>
-    <div class="add-row">
-      <input id="site-input" type="text" placeholder="ejemplo.com" autocomplete="off" />
-      <button id="add-btn">Agregar</button>
+  <div class="window main-window">
+    <div class="title-bar">
+      <div class="title-bar-text">Site Blocker — Configuración</div>
+      <div class="theme-select-wrap">
+        <label for="theme-select">Tema:</label>
+        <select id="theme-select">
+          <option value="retro">Retro (Win 98)</option>
+          <option value="sober">Sobrio</option>
+        </select>
+      </div>
     </div>
-    <ul id="site-list"></ul>
+    <div class="window-body">
+      <div class="add-row">
+        <input id="site-input" type="text" placeholder="ejemplo.com" autocomplete="off" />
+        <button id="add-btn">Agregar</button>
+      </div>
+      <ul id="site-list"></ul>
+    </div>
   </div>
   <script type="module" src="options.js"></script>
 </body>
