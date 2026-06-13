@@ -12,27 +12,16 @@ function makeCtx() {
   return { onUpdate: vi.fn() };
 }
 
-function getToggle(box) { return box.querySelector(".exc-toggle"); }
-function getSection(box) { return box.querySelector(".exc-section"); }
 function getTags(box) { return [...box.querySelectorAll(".exc-tag")]; }
 function getInput(box) { return box.querySelector(".exc-input"); }
 function getAddBtn(box) { return box.querySelector(".exc-add-btn"); }
 
 describe("ExceptionsFeature — render inicial", () => {
-  test("sin excepciones: toggle sin clase active, texto 'Excepciones', sección oculta", () => {
+  test("sin excepciones: no hay chips, sí hay input y botón", () => {
     const box = ExceptionsFeature.render(makeSite(), makeCtx());
-    const toggle = getToggle(box);
-    expect(toggle.className).toBe("exc-toggle");
-    expect(toggle.textContent).toBe("Excepciones");
-    expect(getSection(box).style.display).toBe("none");
-  });
-
-  test("con excepciones: toggle con clase active, texto con contador, sección visible", () => {
-    const box = ExceptionsFeature.render(makeSite(["music.youtube.com", "accounts.google.com"]), makeCtx());
-    const toggle = getToggle(box);
-    expect(toggle.className).toBe("exc-toggle active");
-    expect(toggle.textContent).toBe("Excepciones (2)");
-    expect(getSection(box).style.display).toBe("");
+    expect(getTags(box)).toHaveLength(0);
+    expect(getInput(box)).not.toBeNull();
+    expect(getAddBtn(box)).not.toBeNull();
   });
 
   test("con excepciones: muestra un chip por excepción", () => {
@@ -47,24 +36,6 @@ describe("ExceptionsFeature — render inicial", () => {
     const box = ExceptionsFeature.render(makeSite(), makeCtx());
     expect(getInput(box)).not.toBeNull();
     expect(getAddBtn(box)).not.toBeNull();
-  });
-});
-
-describe("ExceptionsFeature — toggle", () => {
-  test("click en toggle muestra la sección cuando estaba oculta", () => {
-    const box = ExceptionsFeature.render(makeSite(), makeCtx());
-    const section = getSection(box);
-    expect(section.style.display).toBe("none");
-    getToggle(box).click();
-    expect(section.style.display).toBe("");
-  });
-
-  test("click en toggle oculta la sección cuando estaba visible", () => {
-    const box = ExceptionsFeature.render(makeSite(["music.youtube.com"]), makeCtx());
-    const section = getSection(box);
-    expect(section.style.display).toBe("");
-    getToggle(box).click();
-    expect(section.style.display).toBe("none");
   });
 });
 
@@ -93,7 +64,7 @@ describe("ExceptionsFeature — agregar excepción", () => {
     expect(ctx.onUpdate).toHaveBeenCalledWith(site);
   });
 
-  test("al agregar, el toggle pasa a active y muestra el contador", () => {
+  test("al agregar, aparece el nuevo chip en la lista", () => {
     const site = makeSite();
     const ctx = makeCtx();
     const box = ExceptionsFeature.render(site, ctx);
@@ -101,8 +72,8 @@ describe("ExceptionsFeature — agregar excepción", () => {
     getInput(box).value = "music.youtube.com";
     getAddBtn(box).click();
 
-    expect(getToggle(box).className).toBe("exc-toggle active");
-    expect(getToggle(box).textContent).toBe("Excepciones (1)");
+    expect(getTags(box)).toHaveLength(1);
+    expect(getTags(box)[0].textContent).toContain("music.youtube.com");
   });
 
   test("al agregar, el input queda vacío", () => {
@@ -173,17 +144,6 @@ describe("ExceptionsFeature — eliminar excepción", () => {
     expect(ctx.onUpdate).toHaveBeenCalledWith(site);
   });
 
-  test("al eliminar la última excepción, el toggle vuelve a estado inactivo", () => {
-    const site = makeSite(["music.youtube.com"]);
-    const ctx = makeCtx();
-    const box = ExceptionsFeature.render(site, ctx);
-
-    box.querySelector(".exc-tag-del").click();
-
-    expect(getToggle(box).className).toBe("exc-toggle");
-    expect(getToggle(box).textContent).toBe("Excepciones");
-  });
-
   test("al eliminar, la lista de chips se actualiza", () => {
     const site = makeSite(["music.youtube.com", "accounts.google.com"]);
     const ctx = makeCtx();
@@ -193,5 +153,15 @@ describe("ExceptionsFeature — eliminar excepción", () => {
 
     expect(getTags(box)).toHaveLength(1);
     expect(getTags(box)[0].textContent).toContain("accounts.google.com");
+  });
+
+  test("al eliminar la última excepción, desaparece la lista de chips", () => {
+    const site = makeSite(["music.youtube.com"]);
+    const ctx = makeCtx();
+    const box = ExceptionsFeature.render(site, ctx);
+
+    box.querySelector(".exc-tag-del").click();
+
+    expect(getTags(box)).toHaveLength(0);
   });
 });

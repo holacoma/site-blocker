@@ -5,25 +5,16 @@ function formatMs(ms) {
 }
 
 export const TimerFeature = {
+  id: "timer",
+  label: "Timer",
+  description: "Limitá el tiempo de acceso diario a este sitio. El contador arranca cuando entrás.",
+
   render(site, ctx) {
     const box = document.createElement("div");
-    box.className = "feature-box timer-box";
+    box.className = "timer-section";
 
     const row = document.createElement("div");
     row.className = "timer-row";
-
-    const toggle = document.createElement("button");
-    toggle.className = "timer-toggle" + (site.timerMinutes > 0 ? " active" : "");
-    toggle.textContent = "⏱";
-    toggle.title = "Temporizador diario";
-
-    const section = document.createElement("div");
-    section.className = "timer-section";
-    section.style.display = site.timerMinutes > 0 ? "" : "none";
-
-    toggle.addEventListener("click", () => {
-      section.style.display = section.style.display === "none" ? "" : "none";
-    });
 
     const minInput = document.createElement("input");
     minInput.type = "number";
@@ -40,10 +31,9 @@ export const TimerFeature = {
     const statusSpan = document.createElement("span");
     statusSpan.className = "timer-status";
 
-    // Fill in live timer status
     const { activeTimers, pausedTimers, usedTimerDates, today } = ctx;
-    const expiry   = activeTimers[site.domain] ?? null;
-    const pausedMs = pausedTimers[site.domain] ?? 0;
+    const expiry    = activeTimers[site.domain] ?? null;
+    const pausedMs  = pausedTimers[site.domain] ?? 0;
     const usedToday = usedTimerDates[site.domain] === today;
     const isRunning = expiry && Date.now() < expiry;
     const isPaused  = !isRunning && pausedMs > 0;
@@ -67,7 +57,6 @@ export const TimerFeature = {
       const val = Math.max(0, parseInt(minInput.value, 10) || 0);
       minInput.value = val || "";
       site.timerMinutes = val;
-      toggle.className = "timer-toggle" + (val > 0 ? " active" : "");
       ctx.onUpdate(site);
       if (val === 0) {
         chrome.runtime.sendMessage({ type: "STOP_TIMER", domain: site.domain });
@@ -76,12 +65,9 @@ export const TimerFeature = {
       }
     });
 
-    section.appendChild(minInput);
-    section.appendChild(minLabel);
-    section.appendChild(statusSpan);
-
-    row.appendChild(toggle);
-    row.appendChild(section);
+    row.appendChild(minInput);
+    row.appendChild(minLabel);
+    row.appendChild(statusSpan);
     box.appendChild(row);
 
     return box;

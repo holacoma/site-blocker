@@ -1,24 +1,14 @@
 export const ExceptionsFeature = {
+  id: "exceptions",
+  label: "Excepciones",
+  description: "Permitís acceso a sub-páginas específicas dentro del sitio bloqueado (ej: mail.google.com).",
+
   render(site, ctx) {
     const box = document.createElement("div");
-    box.className = "feature-box exceptions-box";
-
-    const toggle = document.createElement("button");
-    toggle.className = "exc-toggle" + (site.exceptions.length > 0 ? " active" : "");
-    toggle.textContent = site.exceptions.length > 0
-      ? `Excepciones (${site.exceptions.length})`
-      : "Excepciones";
-
-    const section = document.createElement("div");
-    section.className = "exc-section";
-    section.style.display = site.exceptions.length > 0 ? "" : "none";
-
-    toggle.addEventListener("click", () => {
-      section.style.display = section.style.display === "none" ? "" : "none";
-    });
+    box.className = "exc-section";
 
     function rebuild() {
-      section.innerHTML = "";
+      box.innerHTML = "";
 
       if (site.exceptions.length > 0) {
         const list = document.createElement("div");
@@ -32,17 +22,13 @@ export const ExceptionsFeature = {
           delBtn.textContent = "×";
           delBtn.addEventListener("click", () => {
             site.exceptions = site.exceptions.filter((e) => e !== exc);
-            toggle.className = "exc-toggle" + (site.exceptions.length > 0 ? " active" : "");
-            toggle.textContent = site.exceptions.length > 0
-              ? `Excepciones (${site.exceptions.length})`
-              : "Excepciones";
             ctx.onUpdate(site);
             rebuild();
           });
           tag.appendChild(delBtn);
           list.appendChild(tag);
         });
-        section.appendChild(list);
+        box.appendChild(list);
       }
 
       const addRow = document.createElement("div");
@@ -63,8 +49,6 @@ export const ExceptionsFeature = {
           .replace(/^https?:\/\//, "").replace(/^www\./, "");
         if (!val || site.exceptions.includes(val)) { input.value = ""; return; }
         site.exceptions = [...site.exceptions, val];
-        toggle.className = "exc-toggle active";
-        toggle.textContent = `Excepciones (${site.exceptions.length})`;
         ctx.onUpdate(site);
         input.value = "";
         rebuild();
@@ -75,12 +59,10 @@ export const ExceptionsFeature = {
 
       addRow.appendChild(input);
       addRow.appendChild(addBtn);
-      section.appendChild(addRow);
+      box.appendChild(addRow);
     }
 
     rebuild();
-    box.appendChild(toggle);
-    box.appendChild(section);
     return box;
   },
 };

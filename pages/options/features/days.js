@@ -1,9 +1,13 @@
 const DAYS_ES = ["D", "L", "M", "M", "J", "V", "S"];
 
 export const DaysFeature = {
+  id: "days",
+  label: "Días",
+  description: "Seleccioná los días de la semana en que este sitio debe bloquearse.",
+
   render(site, ctx) {
     const box = document.createElement("div");
-    box.className = "feature-box days-box";
+    box.className = "days-box";
 
     DAYS_ES.forEach((label, dayIndex) => {
       const btn = document.createElement("button");

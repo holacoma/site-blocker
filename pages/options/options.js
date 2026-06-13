@@ -5,9 +5,28 @@ import { ExceptionsFeature } from "./features/exceptions.js";
 
 const FEATURES = [DaysFeature, TimerFeature, ExceptionsFeature];
 
-const input   = document.getElementById("site-input");
-const addBtn  = document.getElementById("add-btn");
-const siteList = document.getElementById("site-list");
+const input       = document.getElementById("site-input");
+const addBtn      = document.getElementById("add-btn");
+const siteList    = document.getElementById("site-list");
+const themeLink   = document.getElementById("theme-css");
+const themeSelect = document.getElementById("theme-select");
+
+// ── Theme ────────────────────────────────────────────────────────────────────
+
+function applyTheme(theme) {
+  themeLink.href = theme === "sober" ? "theme-sober.css" : "theme-retro.css";
+  themeSelect.value = theme;
+}
+
+chrome.storage.local.get({ theme: "retro" }, ({ theme }) => applyTheme(theme));
+
+themeSelect.addEventListener("change", () => {
+  const theme = themeSelect.value;
+  chrome.storage.local.set({ theme });
+  applyTheme(theme);
+});
+
+// ── Sites ────────────────────────────────────────────────────────────────────
 
 function load() {
   const today = new Date().toISOString().slice(0, 10);
@@ -43,7 +62,6 @@ function render(sites, timerState) {
       usedTimerDates: timerState.usedTimerDates,
       today:          timerState.today,
       onUpdate(updatedSite) {
-        // Merge the updated site back into the list and save
         const updated = sites.map((s) =>
           s.domain === updatedSite.domain ? updatedSite : s
         );
@@ -52,41 +70,81 @@ function render(sites, timerState) {
       refresh: load,
     };
 
-    const card = createCard(site, sites, ctx);
-    siteList.appendChild(card);
+    siteList.appendChild(createCard(site, sites, ctx));
   });
 }
 
 function createCard(site, allSites, ctx) {
   const li = document.createElement("li");
-  li.className = "site-card";
 
-  // ── Header row: domain name + delete ───────────────────────────────────────
-  const header = document.createElement("div");
-  header.className = "card-header";
+  const win = document.createElement("div");
+  win.className = "window site-card";
 
-  const nameSpan = document.createElement("span");
-  nameSpan.className = "domain-name";
-  nameSpan.textContent = site.domain;
+  const titleBar = document.createElement("div");
+  titleBar.className = "title-bar";
+
+  const titleText = document.createElement("div");
+  titleText.className = "title-bar-text";
+  titleText.textContent = site.domain;
+
+  const titleControls = document.createElement("div");
+  titleControls.className = "title-bar-controls";
 
   const delBtn = document.createElement("button");
-  delBtn.className = "delete-btn";
-  delBtn.textContent = "×";
+  delBtn.setAttribute("aria-label", "Close");
   delBtn.title = "Eliminar";
   delBtn.addEventListener("click", () => removeSite(site.domain, allSites));
 
-  header.appendChild(nameSpan);
-  header.appendChild(delBtn);
-  li.appendChild(header);
+  titleControls.appendChild(delBtn);
+  titleBar.appendChild(titleText);
+  titleBar.appendChild(titleControls);
 
-  // ── Feature boxes ───────────────────────────────────────────────────────────
+  const body = document.createElement("div");
+  body.className = "window-body";
+
+  const tabRow = document.createElement("div");
+  tabRow.className = "tab-row";
+  body.appendChild(tabRow);
+
+  const tabBtns = [];
+  const panels  = [];
+
   for (const feature of FEATURES) {
-    const separator = document.createElement("div");
-    separator.className = "card-separator";
-    li.appendChild(separator);
-    li.appendChild(feature.render(site, ctx));
+    const tabBtn = document.createElement("button");
+    tabBtn.textContent = feature.label;
+    tabBtn.className = "tab-btn";
+    tabRow.appendChild(tabBtn);
+    tabBtns.push(tabBtn);
+
+    const panel = document.createElement("div");
+    panel.className = "feature-panel";
+    panel.style.display = "none";
+
+    const desc = document.createElement("p");
+    desc.className = "feature-desc";
+    desc.textContent = feature.description;
+
+    panel.appendChild(desc);
+    panel.appendChild(feature.render(site, ctx));
+    body.appendChild(panel);
+    panels.push(panel);
   }
 
+  tabBtns.forEach((btn, i) => {
+    btn.addEventListener("click", () => {
+      const isOpen = panels[i].style.display !== "none";
+      panels.forEach((p) => { p.style.display = "none"; });
+      tabBtns.forEach((b) => b.classList.remove("active"));
+      if (!isOpen) {
+        panels[i].style.display = "";
+        btn.classList.add("active");
+      }
+    });
+  });
+
+  win.appendChild(titleBar);
+  win.appendChild(body);
+  li.appendChild(win);
   return li;
 }
 
