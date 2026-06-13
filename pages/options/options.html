@@ -4,8 +4,17 @@
   <meta charset="UTF-8" />
   <title>Site Blocker — Configuración</title>
   <link id="theme-css" rel="stylesheet" href="theme-retro.css" />
+  <style>
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+    }
+  </style>
 </head>
 <body>
+  <canvas id="bg-canvas"></canvas>
   <div class="window main-window">
     <div class="title-bar">
       <div class="title-bar-text">Site Blocker — Configuración</div>
@@ -25,6 +34,7 @@
       <ul id="site-list"></ul>
     </div>
   </div>
+  <script src="bg.js"></script>
   <script type="module" src="options.js"></script>
 </body>
 </html>
