@@ -3,45 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <title>Sitio bloqueado</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f0f0f;
-      color: #e0e0e0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-    }
-    .container { max-width: 400px; padding: 2rem; }
-    .icon { font-size: 4rem; margin-bottom: 1rem; }
-    h1 { font-size: 1.6rem; margin-bottom: 0.5rem; color: #fff; }
-    .site { color: #888; font-size: 1rem; margin-bottom: 1.5rem; font-family: monospace; }
-    p { color: #999; line-height: 1.6; }
-    .back {
-      display: inline-block;
-      margin-top: 2rem;
-      padding: 0.6rem 1.4rem;
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 6px;
-      color: #ccc;
-      text-decoration: none;
-      font-size: 0.9rem;
-      cursor: pointer;
-    }
-    .back:hover { background: #222; border-color: #555; color: #fff; }
-  </style>
+  <link rel="stylesheet" href="../options/options.css" />
+  <link id="theme-css" rel="stylesheet" href="../options/theme-sober.css" />
+  <link rel="stylesheet" href="blocked.css" />
 </head>
 <body>
-  <div class="container">
-    <div class="icon">🚫</div>
-    <h1>Sitio bloqueado</h1>
-    <div class="site" id="site-name"></div>
-    <p>Este sitio está bloqueado. Vuelve al trabajo.</p>
-    <button class="back" id="back-btn">← Volver</button>
+  <div class="window main-window">
+    <div class="title-bar">
+      <div class="title-bar-text" id="block-title">Sitio bloqueado</div>
+    </div>
+    <div class="window-body">
+      <p class="block-site" id="site-name"></p>
+      <p class="block-message" id="block-message">Este sitio está bloqueado. Volvé al trabajo.</p>
+      <button id="back-btn">← Volver</button>
+    </div>
   </div>
   <script src="blocked.js"></script>
 </body>

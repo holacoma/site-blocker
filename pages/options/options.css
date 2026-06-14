@@ -539,6 +539,77 @@
 .setting-divider { border: none; border-top: 1px solid #eef0f3; margin: 0; }
 [data-theme="retro"] .setting-divider { border-top: 1px solid #888; margin: 4px 0; }
 
+/* ── Block settings ── */
+
+.block-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin: 0 0 5px;
+}
+[data-theme="retro"] .block-label {
+  font-family: "Pixelated MS Sans Serif", Arial;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #000;
+  margin: 0 0 3px;
+}
+
+.block-text-input {
+  width: 100%;
+  margin: 0 0 14px;
+  font-size: 13px;
+}
+[data-theme="retro"] .block-text-input { font-size: 11px; margin: 0 0 8px; }
+
+.block-text-area {
+  width: 100%;
+  margin: 0 0 14px;
+  font-size: 13px;
+  resize: vertical;
+}
+[data-theme="retro"] .block-text-area { font-size: 11px; margin: 0 0 8px; resize: none; }
+
+.block-anim-select {
+  width: 100%;
+  margin: 0 0 14px;
+  font-size: 13px;
+}
+[data-theme="retro"] .block-anim-select { font-size: 11px; margin: 0 0 8px; }
+
+.block-preview-btn {
+  display: inline-block;
+  background: #f8f9fa;
+  border: 1.5px solid #dde1e7;
+  border-radius: 6px;
+  color: #444;
+  font-size: 13px;
+  padding: 7px 16px;
+  cursor: pointer;
+  box-shadow: none;
+  min-width: unset;
+  min-height: unset;
+  margin: 0;
+}
+.block-preview-btn:hover { background: #eef0f3; border-color: #bbb; color: #111; }
+
+[data-theme="retro"] .block-preview-btn {
+  border-radius: 0;
+  background: silver;
+  border: none;
+  font-size: 11px;
+  padding: 3px 12px;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  min-height: 23px;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff,
+              inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+[data-theme="retro"] .block-preview-btn:hover { background: silver; color: #222; }
+
 /* ── About ── */
 
 .about-name    { font-size: 18px; font-weight: 600; margin: 0 0 6px; color: #111; }

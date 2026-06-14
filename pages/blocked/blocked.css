@@ -1,0 +1,78 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 32px 16px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="sober"] body { background: #eef0f3; }
+[data-theme="retro"] body { background: #008080; }
+
+.main-window { max-width: 400px; width: 100%; }
+
+/* Animaciones */
+@keyframes sb-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sb-slide {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes sb-scale {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.main-window.anim-fade  { animation: sb-fade  0.25s ease-out; }
+.main-window.anim-slide { animation: sb-slide 0.28s ease-out; }
+.main-window.anim-scale { animation: sb-scale 0.25s ease-out; }
+
+.block-site {
+  font-family: monospace;
+  font-size: 13px;
+  color: #888;
+  margin: 0 0 12px;
+}
+[data-theme="retro"] .block-site {
+  font-family: "Pixelated MS Sans Serif", Arial;
+  font-size: 11px;
+  color: #555;
+}
+
+.block-message {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+[data-theme="retro"] .block-message {
+  font-family: "Pixelated MS Sans Serif", Arial;
+  font-size: 11px;
+  color: #333;
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+
+[data-theme="sober"] #back-btn {
+  background: #f8f9fa;
+  border: 1.5px solid #dde1e7;
+  border-radius: 6px;
+  color: #444;
+  font-size: 13px;
+  padding: 7px 16px;
+  cursor: pointer;
+  box-shadow: none;
+  min-width: unset;
+  min-height: unset;
+  margin: 0;
+}
+[data-theme="sober"] #back-btn:hover {
+  background: #eef0f3;
+  border-color: #bbb;
+  color: #111;
+}

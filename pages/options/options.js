@@ -5,6 +5,7 @@ import { TimerFeature } from "./features/timer.js";
 import { ExceptionsFeature } from "./features/exceptions.js";
 import { renderGeneral } from "./features/general.js";
 import { renderAbout } from "./features/about.js";
+import { renderBlock } from "./features/block.js";
 import { renderAppearance } from "./features/appearance.js";
 
 const FEATURES = [DaysFeature, TimerFeature, ExceptionsFeature];
@@ -224,6 +225,7 @@ chrome.storage.local.get({ language: "es" }, ({ language }) => {
   applyTranslations();
   renderGeneral(themeLink);
   renderAppearance();
+  renderBlock();
   renderAbout();
   load();
 });
