@@ -23,16 +23,16 @@ export function renderAbout() {
   mount.appendChild(version);
   mount.appendChild(desc);
 
+  // Philosophy
+  mount.appendChild(makeDivider());
+  mount.appendChild(makeTitle(t("aboutPhilosophyTitle")));
+  makeParagraphs(t("aboutPhilosophy"), "about-story").forEach(p => mount.appendChild(p));
+
   // Story
   mount.appendChild(makeDivider());
 
-  const storyTitle = makeTitle(t("aboutStoryTitle"));
-  const story = document.createElement("p");
-  story.className = "about-story";
-  story.textContent = t("aboutStory");
-
-  mount.appendChild(storyTitle);
-  mount.appendChild(story);
+  mount.appendChild(makeTitle(t("aboutStoryTitle")));
+  makeParagraphs(t("aboutStory"), "about-story").forEach(p => mount.appendChild(p));
 
   // Credits
   mount.appendChild(makeDivider());
@@ -83,6 +83,15 @@ function makeTitle(text) {
   h3.className = "about-section-title";
   h3.textContent = text;
   return h3;
+}
+
+function makeParagraphs(text, className) {
+  return text.split("\n\n").map(chunk => {
+    const p = document.createElement("p");
+    p.className = className;
+    p.textContent = chunk;
+    return p;
+  });
 }
 
 function makeDivider() {
