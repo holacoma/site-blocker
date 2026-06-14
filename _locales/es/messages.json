@@ -1,0 +1,34 @@
+{
+  "appTitle":               { "message": "Site Blocker — Configuración" },
+  "navDomainBlock":         { "message": "Bloqueo de Dominios" },
+  "navAppearance":          { "message": "Apariencia" },
+  "navAbout":               { "message": "Acerca de" },
+
+  "addPlaceholder":         { "message": "ejemplo.com" },
+  "addButton":              { "message": "Agregar" },
+  "emptySites":             { "message": "Sin sitios bloqueados" },
+  "deleteSiteTitle":        { "message": "Eliminar" },
+
+  "featureDaysLabel":       { "message": "Días" },
+  "featureDaysDesc":        { "message": "Seleccioná los días de la semana en que este sitio debe bloquearse." },
+  "dayNames":               { "message": "D,L,M,M,J,V,S" },
+
+  "featureTimerLabel":      { "message": "Timer" },
+  "featureTimerDesc":       { "message": "Limitá el tiempo de acceso diario a este sitio. El contador arranca cuando entrás." },
+  "timerMinLabel":          { "message": "min / día" },
+  "timerMinTitle":          { "message": "Minutos de acceso permitido por día" },
+  "timerStatusPaused":      { "message": "En pausa:" },
+  "timerStatusUsed":        { "message": "Usado hoy" },
+
+  "featureExceptionsLabel": { "message": "Excepciones" },
+  "featureExceptionsDesc":  { "message": "Permitís acceso a sub-páginas específicas dentro del sitio bloqueado (ej: mail.google.com)." },
+
+  "themeLabel":             { "message": "Tema" },
+  "themeRetro":             { "message": "Retro (Win 98)" },
+  "themeSober":             { "message": "Sobrio" },
+  "languageLabel":          { "message": "Idioma" },
+  "languageNote":           { "message": "El idioma sigue la configuración de Chrome." },
+
+  "aboutVersion":           { "message": "Versión" },
+  "aboutDescription":       { "message": "Bloquea sitios web que distraen según días y tiempo de uso." }
+}

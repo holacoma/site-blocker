@@ -1,0 +1,34 @@
+{
+  "appTitle":               { "message": "Site Blocker — Settings" },
+  "navDomainBlock":         { "message": "Domain Block" },
+  "navAppearance":          { "message": "Appearance" },
+  "navAbout":               { "message": "About" },
+
+  "addPlaceholder":         { "message": "example.com" },
+  "addButton":              { "message": "Add" },
+  "emptySites":             { "message": "No blocked sites" },
+  "deleteSiteTitle":        { "message": "Remove" },
+
+  "featureDaysLabel":       { "message": "Days" },
+  "featureDaysDesc":        { "message": "Select the days of the week on which this site should be blocked." },
+  "dayNames":               { "message": "S,M,T,W,T,F,S" },
+
+  "featureTimerLabel":      { "message": "Timer" },
+  "featureTimerDesc":       { "message": "Limit daily access time to this site. The counter starts when you enter." },
+  "timerMinLabel":          { "message": "min / day" },
+  "timerMinTitle":          { "message": "Minutes of access allowed per day" },
+  "timerStatusPaused":      { "message": "Paused:" },
+  "timerStatusUsed":        { "message": "Used today" },
+
+  "featureExceptionsLabel": { "message": "Exceptions" },
+  "featureExceptionsDesc":  { "message": "Allow access to specific sub-pages within the blocked site (e.g. mail.google.com)." },
+
+  "themeLabel":             { "message": "Theme" },
+  "themeRetro":             { "message": "Retro (Win 98)" },
+  "themeSober":             { "message": "Sober" },
+  "languageLabel":          { "message": "Language" },
+  "languageNote":           { "message": "Language follows Chrome's language setting." },
+
+  "aboutVersion":           { "message": "Version" },
+  "aboutDescription":       { "message": "Blocks distracting websites based on days and usage time." }
+}
