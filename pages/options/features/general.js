@@ -61,10 +61,11 @@ export function renderGeneral(themeLink) {
   // Theme logic
   function applyTheme(theme) {
     themeLink.href = theme === "sober" ? "theme-sober.css" : "theme-retro.css";
+    document.documentElement.dataset.theme = theme;
     themeSelect.value = theme;
   }
 
-  chrome.storage.local.get({ theme: "retro" }, ({ theme }) => applyTheme(theme));
+  chrome.storage.local.get({ theme: "sober" }, ({ theme }) => applyTheme(theme));
 
   themeSelect.addEventListener("change", () => {
     const theme = themeSelect.value;
