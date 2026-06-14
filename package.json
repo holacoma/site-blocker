@@ -1,10 +1,14 @@
 {
   "name": "site-blocker",
   "private": true,
+  "type": "module",
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "happy-dom": "^20.10.2",
     "vitest": "^2.0.0"
   }
