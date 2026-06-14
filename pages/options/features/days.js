@@ -1,15 +1,16 @@
-const DAYS_ES = ["D", "L", "M", "M", "J", "V", "S"];
+import { t } from "../../../shared/i18n.js";
 
 export const DaysFeature = {
   id: "days",
-  label: "Días",
-  description: "Seleccioná los días de la semana en que este sitio debe bloquearse.",
+  get label()       { return t("featureDaysLabel"); },
+  get description() { return t("featureDaysDesc"); },
 
   render(site, ctx) {
+    const days = t("dayNames").split(",");
     const box = document.createElement("div");
     box.className = "days-box";
 
-    DAYS_ES.forEach((label, dayIndex) => {
+    days.forEach((label, dayIndex) => {
       const btn = document.createElement("button");
       btn.className = "day-btn" + (site.days.includes(dayIndex) ? " active" : "");
       btn.textContent = label;

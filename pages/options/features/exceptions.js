@@ -1,7 +1,9 @@
+import { t } from "../../../shared/i18n.js";
+
 export const ExceptionsFeature = {
   id: "exceptions",
-  label: "Excepciones",
-  description: "Permitís acceso a sub-páginas específicas dentro del sitio bloqueado (ej: mail.google.com).",
+  get label()       { return t("featureExceptionsLabel"); },
+  get description() { return t("featureExceptionsDesc"); },
 
   render(site, ctx) {
     const box = document.createElement("div");

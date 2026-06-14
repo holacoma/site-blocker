@@ -1,29 +1,46 @@
 import { BlockedSite } from "../../shared/BlockedSite.js";
+import { t, setLang } from "../../shared/i18n.js";
 import { DaysFeature } from "./features/days.js";
 import { TimerFeature } from "./features/timer.js";
 import { ExceptionsFeature } from "./features/exceptions.js";
+import { renderGeneral } from "./features/general.js";
+import { renderAbout } from "./features/about.js";
 
 const FEATURES = [DaysFeature, TimerFeature, ExceptionsFeature];
 
-const input       = document.getElementById("site-input");
-const addBtn      = document.getElementById("add-btn");
-const siteList    = document.getElementById("site-list");
-const themeLink   = document.getElementById("theme-css");
-const themeSelect = document.getElementById("theme-select");
+const input    = document.getElementById("site-input");
+const addBtn   = document.getElementById("add-btn");
+const siteList = document.getElementById("site-list");
+const themeLink = document.getElementById("theme-css");
 
-// ── Theme ────────────────────────────────────────────────────────────────────
+// ── i18n ─────────────────────────────────────────────────────────────────────
 
-function applyTheme(theme) {
-  themeLink.href = theme === "sober" ? "theme-sober.css" : "theme-retro.css";
-  themeSelect.value = theme;
+function applyTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const msg = t(el.dataset.i18n);
+    if (msg) el.textContent = msg;
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    const msg = t(el.dataset.i18nPlaceholder);
+    if (msg) el.placeholder = msg;
+  });
+  const title = t("appTitle");
+  if (title) document.title = title;
 }
 
-chrome.storage.local.get({ theme: "retro" }, ({ theme }) => applyTheme(theme));
+// ── Sidebar navigation ───────────────────────────────────────────────────────
 
-themeSelect.addEventListener("change", () => {
-  const theme = themeSelect.value;
-  chrome.storage.local.set({ theme });
-  applyTheme(theme);
+function showSection(id) {
+  document.querySelectorAll(".nav-item").forEach((b) =>
+    b.classList.toggle("active", b.dataset.section === id)
+  );
+  document.querySelectorAll(".section").forEach((s) =>
+    s.classList.toggle("active", s.id === "section-" + id)
+  );
+}
+
+document.querySelectorAll(".nav-item").forEach((btn) => {
+  btn.addEventListener("click", () => showSection(btn.dataset.section));
 });
 
 // ── Sites ────────────────────────────────────────────────────────────────────
@@ -51,7 +68,7 @@ function render(sites, timerState) {
   siteList.innerHTML = "";
 
   if (sites.length === 0) {
-    siteList.innerHTML = '<li class="empty">Sin sitios bloqueados</li>';
+    siteList.innerHTML = `<li class="empty">${t("emptySites")}</li>`;
     return;
   }
 
@@ -91,9 +108,33 @@ function createCard(site, allSites, ctx) {
   titleControls.className = "title-bar-controls";
 
   const delBtn = document.createElement("button");
-  delBtn.setAttribute("aria-label", "Close");
-  delBtn.title = "Eliminar";
-  delBtn.addEventListener("click", () => removeSite(site.domain, allSites));
+  delBtn.className = "del-btn";
+  delBtn.title = t("deleteSiteTitle");
+  delBtn.textContent = "🗑";
+
+  let delPending = false;
+  let delTimer = null;
+
+  function resetDel() {
+    delPending = false;
+    clearTimeout(delTimer);
+    delBtn.textContent = "🗑";
+    delBtn.classList.remove("del-btn--pending");
+  }
+
+  delBtn.addEventListener("click", () => {
+    if (!delPending) {
+      delPending = true;
+      delBtn.textContent = t("deleteConfirm");
+      delBtn.classList.add("del-btn--pending");
+      delTimer = setTimeout(resetDel, 3000);
+    } else {
+      clearTimeout(delTimer);
+      removeSite(site.domain, allSites);
+    }
+  });
+
+  delBtn.addEventListener("blur", resetDel);
 
   titleControls.appendChild(delBtn);
   titleBar.appendChild(titleText);
@@ -175,4 +216,12 @@ function removeSite(domain, currentSites) {
 addBtn.addEventListener("click", addSite);
 input.addEventListener("keydown", (e) => { if (e.key === "Enter") addSite(); });
 
-load();
+// ── Init — load language first, then render everything ───────────────────────
+
+chrome.storage.local.get({ language: "es" }, ({ language }) => {
+  setLang(language);
+  applyTranslations();
+  renderGeneral(themeLink);
+  renderAbout();
+  load();
+});

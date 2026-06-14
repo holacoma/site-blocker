@@ -166,3 +166,119 @@ body {
 .exc-add-row { display: flex; gap: 4px; }
 .exc-input { flex: 1; font-family: monospace; }
 .exc-add-btn { min-width: 30px; min-height: 22px; padding: 0; }
+
+/* ── Delete button with inline confirmation ── */
+
+.title-bar-controls .del-btn {
+  min-width: 20px;
+  min-height: 14px;
+  padding: 0 4px;
+  font-size: 12px;
+  font-family: "Pixelated MS Sans Serif", Arial;
+}
+.title-bar-controls .del-btn--pending {
+  color: red;
+  font-weight: bold;
+  font-size: 10px;
+}
+
+/* ── Domain input label ── */
+
+.add-label {
+  display: block;
+  font-size: 11px;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  margin-bottom: 2px;
+  color: #222;
+}
+
+.add-hint {
+  font-size: 11px;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  color: #555;
+  margin: 0 0 6px 0;
+}
+
+/* ── Sidebar layout ── */
+
+.main-window { max-width: 760px; }
+
+.app-body { border-top: 2px solid #888; }
+
+.sidebar {
+  width: 160px;
+  border-right: 2px solid #888;
+  background: silver;
+  padding: 2px;
+  gap: 1px;
+}
+
+.nav-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: silver;
+  border: none;
+  box-shadow: none;
+  min-width: unset;
+  min-height: 20px;
+  padding: 3px 8px;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  font-size: 11px;
+  cursor: pointer;
+  color: #222;
+}
+
+.nav-item:hover {
+  background: navy;
+  color: #fff;
+}
+
+.nav-item.active {
+  background: navy;
+  color: #fff;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
+              inset -2px -2px #dfdfdf, inset 2px 2px grey;
+}
+
+.content {
+  padding: 8px;
+}
+
+/* General section — setting rows */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+}
+.setting-info { flex: 1; }
+.setting-title {
+  font-size: 11px;
+  font-weight: bold;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  color: #000;
+  margin-bottom: 2px;
+}
+.setting-subtitle {
+  font-size: 11px;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  color: #555;
+}
+.setting-control { flex-shrink: 0; }
+.setting-control select {
+  margin: 0;
+  font-size: 11px;
+  font-family: "Pixelated MS Sans Serif", Arial;
+}
+.setting-divider {
+  border: none;
+  border-top: 1px solid #888;
+  margin: 4px 0;
+}
+
+/* About section */
+.about-name    { font-size: 13px; font-weight: bold; margin: 0 0 4px 0; }
+.about-version { font-size: 11px; color: #555; margin: 0 0 8px 0; font-family: "Pixelated MS Sans Serif", Arial; }
+.about-desc    { font-size: 11px; margin: 0; font-family: "Pixelated MS Sans Serif", Arial; }

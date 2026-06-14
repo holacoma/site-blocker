@@ -1,3 +1,5 @@
+import { t } from "../../../shared/i18n.js";
+
 function formatMs(ms) {
   if (ms <= 0) return "0:00";
   const totalSec = Math.ceil(ms / 1000);
@@ -6,8 +8,8 @@ function formatMs(ms) {
 
 export const TimerFeature = {
   id: "timer",
-  label: "Timer",
-  description: "Limitá el tiempo de acceso diario a este sitio. El contador arranca cuando entrás.",
+  get label()       { return t("featureTimerLabel"); },
+  get description() { return t("featureTimerDesc"); },
 
   render(site, ctx) {
     const box = document.createElement("div");
@@ -22,11 +24,11 @@ export const TimerFeature = {
     minInput.max = "480";
     minInput.value = site.timerMinutes || "";
     minInput.placeholder = "min";
-    minInput.title = "Minutos de acceso permitido por día";
+    minInput.title = t("timerMinTitle");
 
     const minLabel = document.createElement("span");
     minLabel.className = "timer-label";
-    minLabel.textContent = "min / día";
+    minLabel.textContent = t("timerMinLabel");
 
     const statusSpan = document.createElement("span");
     statusSpan.className = "timer-status";
@@ -47,10 +49,10 @@ export const TimerFeature = {
       }, 1000);
     } else if (isPaused) {
       statusSpan.className = "timer-status paused";
-      statusSpan.textContent = "En pausa: " + formatMs(pausedMs);
+      statusSpan.textContent = t("timerStatusPaused") + " " + formatMs(pausedMs);
     } else if (usedToday && site.timerMinutes > 0) {
       statusSpan.className = "timer-status used";
-      statusSpan.textContent = "Usado hoy";
+      statusSpan.textContent = t("timerStatusUsed");
     }
 
     minInput.addEventListener("change", () => {
