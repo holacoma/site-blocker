@@ -1,7 +1,5 @@
 import { t } from "../../../shared/i18n.js";
 
-const DEFAULTS = { blockTitle: "", blockMessage: "", blockAnimation: "fade" };
-
 const ANIMATIONS = [
   { value: "fade",  labelKey: "blockAnimFade"  },
   { value: "slide", labelKey: "blockAnimSlide" },
@@ -13,23 +11,21 @@ export function renderBlock() {
   const mount = document.getElementById("block-mount");
 
   // Title
-  mount.appendChild(makeLabel(t("blockTitleLabel")));
+  mount.appendChild(makeField("blockTitleLabel", "blockTitleDesc"));
   const titleInput = document.createElement("input");
   titleInput.type = "text";
   titleInput.className = "block-text-input";
-  titleInput.placeholder = t("blockTitlePlaceholder");
   mount.appendChild(titleInput);
 
   // Message
-  mount.appendChild(makeLabel(t("blockMessageLabel")));
+  mount.appendChild(makeField("blockMessageLabel", "blockMessageDesc"));
   const msgInput = document.createElement("textarea");
   msgInput.className = "block-text-area";
-  msgInput.placeholder = t("blockMessagePlaceholder");
   msgInput.rows = 3;
   mount.appendChild(msgInput);
 
   // Animation
-  mount.appendChild(makeLabel(t("blockAnimationLabel")));
+  mount.appendChild(makeField("blockAnimationLabel", "blockAnimationDesc"));
   const animSelect = document.createElement("select");
   animSelect.className = "block-anim-select";
   ANIMATIONS.forEach(({ value, labelKey }) => {
@@ -52,16 +48,26 @@ export function renderBlock() {
 
   function save() {
     chrome.storage.local.set({
-      blockTitle:     titleInput.value.trim(),
-      blockMessage:   msgInput.value.trim(),
+      blockTitle:     titleInput.value,
+      blockMessage:   msgInput.value,
       blockAnimation: animSelect.value,
     });
   }
 
-  chrome.storage.local.get(DEFAULTS, ({ blockTitle, blockMessage, blockAnimation }) => {
-    titleInput.value  = blockTitle;
-    msgInput.value    = blockMessage;
-    animSelect.value  = blockAnimation;
+  chrome.storage.local.get({ blockTitle: null, blockMessage: null, blockAnimation: "fade" }, (stored) => {
+    const defaultTitle   = t("blockTitlePlaceholder");
+    const defaultMessage = t("blockMessagePlaceholder");
+
+    titleInput.value = stored.blockTitle   ?? defaultTitle;
+    msgInput.value   = stored.blockMessage ?? defaultMessage;
+    animSelect.value = stored.blockAnimation;
+
+    if (stored.blockTitle === null || stored.blockMessage === null) {
+      chrome.storage.local.set({
+        blockTitle:   stored.blockTitle   ?? defaultTitle,
+        blockMessage: stored.blockMessage ?? defaultMessage,
+      });
+    }
   });
 
   titleInput.addEventListener("input", save);
@@ -69,9 +75,19 @@ export function renderBlock() {
   animSelect.addEventListener("change", save);
 }
 
-function makeLabel(text) {
-  const el = document.createElement("div");
-  el.className = "block-label";
-  el.textContent = text;
-  return el;
+function makeField(labelKey, descKey) {
+  const wrap = document.createElement("div");
+  wrap.className = "block-field-header";
+
+  const label = document.createElement("div");
+  label.className = "block-label";
+  label.textContent = t(labelKey);
+
+  const desc = document.createElement("div");
+  desc.className = "block-field-desc";
+  desc.textContent = t(descKey);
+
+  wrap.appendChild(label);
+  wrap.appendChild(desc);
+  return wrap;
 }

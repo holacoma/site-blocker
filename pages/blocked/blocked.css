@@ -28,9 +28,9 @@ body {
   to   { opacity: 1; transform: scale(1); }
 }
 
-.main-window.anim-fade  { animation: sb-fade  0.25s ease-out; }
-.main-window.anim-slide { animation: sb-slide 0.28s ease-out; }
-.main-window.anim-scale { animation: sb-scale 0.25s ease-out; }
+.main-window.anim-fade  { animation: sb-fade  0.55s ease-out; }
+.main-window.anim-slide { animation: sb-slide 0.6s  ease-out; }
+.main-window.anim-scale { animation: sb-scale 0.55s ease-out; }
 
 .block-site {
   font-family: monospace;

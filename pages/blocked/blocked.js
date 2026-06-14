@@ -6,15 +6,15 @@ const themeLink = document.getElementById("theme-css");
 const win = document.querySelector(".main-window");
 
 chrome.storage.local.get(
-  { theme: "sober", blockTitle: "", blockMessage: "", blockAnimation: "fade" },
+  { theme: "sober", blockTitle: "Sitio bloqueado", blockMessage: "Lo bloqueaste por una razón.", blockAnimation: "fade" },
   ({ theme, blockTitle, blockMessage, blockAnimation }) => {
     themeLink.href = theme === "retro"
       ? "../options/theme-retro.css"
       : "../options/theme-sober.css";
     document.documentElement.dataset.theme = theme;
 
-    if (blockTitle)   document.getElementById("block-title").textContent   = blockTitle;
-    if (blockMessage) document.getElementById("block-message").textContent = blockMessage;
+    document.getElementById("block-title").textContent   = blockTitle;
+    document.getElementById("block-message").textContent = blockMessage;
 
     if (blockAnimation !== "none") win.classList.add("anim-" + blockAnimation);
   }
