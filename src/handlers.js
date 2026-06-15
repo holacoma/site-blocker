@@ -147,7 +147,16 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
   });
 });
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === "REDIRECT_TO_BLOCKED") {
+    if (sender.tab?.id) {
+      chrome.tabs.update(sender.tab.id, {
+        url: BLOCKED_PAGE + "?site=" + encodeURIComponent(msg.site),
+      });
+    }
+    return;
+  }
+
   if (msg.type === "START_TIMER") {
     chrome.storage.local.get({ activeTimers: {}, usedTimerDates: {} }, (data) => {
       data.activeTimers[msg.domain] = Date.now() + msg.minutes * 60 * 1000;
