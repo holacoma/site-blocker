@@ -296,82 +296,128 @@
   function getExpiryCSS(theme) {
     const font = "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important;";
 
+    const miniCSS =
+      "#sb-mini{position:fixed!important;bottom:20px!important;right:20px!important;" +
+      "z-index:2147483648!important;background:rgba(20,20,20,0.88)!important;" +
+      "backdrop-filter:blur(8px)!important;border-radius:28px!important;" +
+      "padding:12px 24px!important;cursor:pointer!important;" +
+      "display:flex!important;align-items:center!important;gap:8px!important;" +
+      "box-shadow:0 4px 20px rgba(0,0,0,0.45)!important;user-select:none!important;}" +
+      "#sb-mini:hover{transform:scale(1.04)!important;}" +
+      "#sb-mini-count{color:#fff!important;font-size:1.4rem!important;" +
+      "font-family:monospace!important;font-weight:700!important;line-height:1!important;}";
+
+    const minimizeBtn = (light) =>
+      "#sb-minimize{position:absolute!important;top:8px!important;right:8px!important;" +
+      "background:none!important;border:none!important;cursor:pointer!important;" +
+      "width:34px!important;height:34px!important;border-radius:50%!important;" +
+      "display:flex!important;align-items:center!important;justify-content:center!important;" +
+      "font-size:22px!important;line-height:1!important;padding:0!important;" +
+      "color:" + (light ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.3)") + "!important;" +
+      "transition:background .15s,color .15s!important;flex-shrink:0!important;}" +
+      "#sb-minimize:hover{" +
+      "background:" + (light ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)") + "!important;" +
+      "color:" + (light ? "#fff" : "rgba(0,0,0,0.65)") + "!important;}";
+
     if (theme === "toast") {
       return [
+        "@keyframes sb-expiry-enter{from{transform:translateX(calc(100% + 24px));opacity:0}" +
+          "to{transform:translateX(0);opacity:1}}",
         "#sb-expiry-overlay{position:fixed!important;bottom:24px!important;right:24px!important;" +
           "left:auto!important;top:auto!important;width:auto!important;height:auto!important;" +
           "z-index:2147483647!important;display:flex!important;flex-direction:column!important;" +
           "align-items:center!important;gap:4px!important;" +
           "background:rgba(255,255,255,0.97)!important;backdrop-filter:blur(12px)!important;" +
           "border:1px solid #dde1e7!important;border-radius:12px!important;" +
-          "padding:12px 20px!important;box-shadow:0 4px 24px rgba(0,0,0,0.15)!important;" +
-          "pointer-events:all!important;user-select:none!important;}",
+          "padding:36px 20px 12px!important;box-shadow:0 4px 24px rgba(0,0,0,0.15)!important;" +
+          "pointer-events:all!important;user-select:none!important;" +
+          "animation:sb-expiry-enter .8s ease-out forwards!important;}",
         "#sb-countdown{font-size:1.5rem!important;font-family:monospace!important;" +
           "font-weight:900!important;color:#d93025!important;line-height:1!important;}",
         `#sb-expiry-msg{font-size:.75rem!important;color:#666!important;${font}}`,
+        minimizeBtn(false),
+        miniCSS,
       ].join("");
     }
 
     if (theme === "subtle") {
       return [
+        "@keyframes sb-expiry-enter{from{transform:translateY(100%);opacity:0}" +
+          "to{transform:translateY(0);opacity:1}}",
         "#sb-expiry-overlay{position:fixed!important;bottom:0!important;left:0!important;" +
           "right:0!important;height:56px!important;" +
           "z-index:2147483647!important;display:flex!important;flex-direction:row!important;" +
           "align-items:center!important;justify-content:center!important;gap:16px!important;" +
           "background:rgba(90,0,0,0.92)!important;" +
-          "pointer-events:all!important;user-select:none!important;}",
+          "pointer-events:all!important;user-select:none!important;" +
+          "animation:sb-expiry-enter .8s ease-out forwards!important;}",
         "#sb-countdown{font-size:1.6rem!important;font-family:monospace!important;" +
           "font-weight:900!important;color:#fff!important;line-height:1!important;}",
         `#sb-expiry-msg{font-size:.85rem!important;color:rgba(255,180,180,0.9)!important;` +
           `letter-spacing:.05em!important;${font}}`,
+        minimizeBtn(true),
+        miniCSS,
       ].join("");
     }
 
     if (theme === "blur") {
       return [
+        "@keyframes sb-expiry-enter{from{opacity:0}to{opacity:1}}",
         "#sb-expiry-overlay{position:fixed!important;inset:0!important;" +
           "z-index:2147483647!important;display:flex!important;flex-direction:column!important;" +
           "align-items:center!important;justify-content:center!important;gap:14px!important;" +
           "background:rgba(0,0,0,0.45)!important;backdrop-filter:blur(10px)!important;" +
-          "pointer-events:all!important;user-select:none!important;}",
+          "pointer-events:all!important;user-select:none!important;" +
+          "animation:sb-expiry-enter 1s ease-out forwards!important;}",
         "#sb-countdown{font-size:clamp(3rem,10vw,7rem)!important;font-family:monospace!important;" +
           "font-weight:900!important;color:#fff!important;line-height:1!important;" +
           "text-shadow:0 2px 24px rgba(0,0,0,.6)!important;}",
         `#sb-expiry-msg{font-size:clamp(.9rem,2vw,1.3rem)!important;` +
           `color:rgba(255,255,255,0.75)!important;letter-spacing:.06em!important;${font}}`,
+        minimizeBtn(true),
+        miniCSS,
       ].join("");
     }
 
     if (theme === "fullscreen") {
       return [
         "@keyframes sb-breathe{0%,100%{background:#0f0f23}50%{background:#1a1a3e}}",
+        "@keyframes sb-expiry-enter{from{opacity:0}to{opacity:1}}",
         "#sb-expiry-overlay{position:fixed!important;inset:0!important;" +
           "z-index:2147483647!important;display:flex!important;flex-direction:column!important;" +
           "align-items:center!important;justify-content:center!important;gap:20px!important;" +
-          "animation:sb-breathe 2s ease-in-out infinite!important;" +
+          "animation:sb-expiry-enter 1.2s ease-in-out forwards," +
+          "sb-breathe 2s ease-in-out 1.2s infinite backwards!important;" +
           "pointer-events:all!important;user-select:none!important;}",
         "#sb-countdown{font-size:clamp(5rem,18vw,15rem)!important;font-family:monospace!important;" +
           "font-weight:900!important;color:#fff!important;line-height:1!important;" +
           "text-shadow:0 0 60px rgba(255,255,255,.15)!important;}",
         `#sb-expiry-msg{font-size:clamp(1rem,3vw,2rem)!important;` +
           `color:rgba(255,255,255,0.5)!important;letter-spacing:.15em!important;${font}}`,
+        minimizeBtn(true),
+        miniCSS,
       ].join("");
     }
 
     // default (classic)
     return [
       "@keyframes sb-pulse{0%,100%{background-color:#cc0000}50%{background-color:#ddaa00}}",
+      "@keyframes sb-expiry-enter{from{transform:translateY(100%);opacity:0}" +
+        "to{transform:translateY(0);opacity:1}}",
       "#sb-expiry-overlay{position:fixed!important;bottom:0!important;left:0!important;" +
         "right:0!important;height:20vh!important;" +
         "z-index:2147483647!important;display:flex!important;flex-direction:row!important;" +
         "align-items:center!important;justify-content:center!important;gap:2vw!important;" +
-        "animation:sb-pulse .5s ease-in-out infinite!important;" +
+        "animation:sb-expiry-enter .8s ease-out forwards," +
+        "sb-pulse .5s ease-in-out .8s infinite backwards!important;" +
         "pointer-events:all!important;user-select:none!important;}",
       "#sb-countdown{font-size:10vh!important;font-family:monospace!important;" +
         "font-weight:900!important;color:#fff!important;line-height:1!important;" +
         "text-shadow:0 0 40px rgba(0,0,0,.5),0 2px 12px rgba(0,0,0,.9)!important;}",
       `#sb-expiry-msg{font-size:clamp(.8rem,2.5vh,1.5rem)!important;color:#fff!important;` +
         `letter-spacing:.05em!important;text-shadow:0 2px 8px rgba(0,0,0,.8)!important;${font}}`,
+      minimizeBtn(true),
+      miniCSS,
     ].join("");
   }
 
@@ -381,11 +427,29 @@
     const overlay = document.createElement("div");
     overlay.id = "sb-expiry-overlay";
     overlay.innerHTML =
-      '<div id="sb-countdown">0:30.00</div>' +
+      '<button id="sb-minimize" title="Minimizar">−</button>' +
+      '<div id="sb-countdown">30.0000</div>' +
       '<div id="sb-expiry-msg">¡Tiempo agotado! Cerrando...</div>';
     document.documentElement.appendChild(overlay);
 
+    const mini = document.createElement("div");
+    mini.id = "sb-mini";
+    mini.title = "Restaurar";
+    mini.innerHTML = '<span id="sb-mini-count">30</span>';
+    mini.style.setProperty("display", "none", "important");
+    document.documentElement.appendChild(mini);
+
     const countdown = overlay.querySelector("#sb-countdown");
+    const miniCount = mini.querySelector("#sb-mini-count");
+
+    overlay.querySelector("#sb-minimize").addEventListener("click", () => {
+      overlay.style.setProperty("display", "none", "important");
+      mini.style.removeProperty("display");
+    });
+    mini.addEventListener("click", () => {
+      mini.style.setProperty("display", "none", "important");
+      overlay.style.removeProperty("display");
+    });
 
     const ticker = setInterval(() => {
       const msLeft = Math.max(0, expiryEnd - Date.now());
@@ -393,12 +457,11 @@
       const subMs = Math.floor((msLeft % 1000) * 10);
       countdown.textContent =
         String(secs).padStart(2, "0") + "." + String(subMs).padStart(4, "0");
+      miniCount.textContent = String(secs).padStart(2, "0");
 
       if (msLeft <= 0) {
         clearInterval(ticker);
-        window.location.href = chrome.runtime.getURL(
-          "pages/blocked/blocked.html?site=" + encodeURIComponent(location.hostname)
-        );
+        chrome.runtime.sendMessage({ type: "REDIRECT_TO_BLOCKED", site: location.hostname });
       }
     }, 16);
   }

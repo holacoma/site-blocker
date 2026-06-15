@@ -9,8 +9,6 @@ body {
   justify-content: center;
 }
 
-[data-theme="sober"] body { background: #eef0f3; }
-[data-theme="retro"] body { background: #008080; }
 
 .main-window { max-width: 400px; width: 100%; }
 
