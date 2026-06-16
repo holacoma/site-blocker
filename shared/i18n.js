@@ -1,6 +1,6 @@
 const MESSAGES = {
   es: {
-    appTitle:               "Site Blocker — Configuración",
+    appTitle:               "Blockdoze",
     navDomainBlock:         "Bloqueo de Dominios",
     navGeneral:             "General",
     navAppearance:          "Apariencia",
@@ -52,7 +52,7 @@ const MESSAGES = {
     aboutVersion:           "Versión",
     aboutDescription:       "Bloquea sitios web que distraen según días y tiempo de uso.",
     aboutPhilosophyTitle:   "Filosofía",
-    aboutPhilosophy:        "Muchas extensiones para bloquear sitios están llenas de cosas que nadie pidió: dashboards, estadísticas, suscripciones, configuraciones que llevan a más configuraciones. Eso no es lo que esto es.\n\nSite Blocker hace una cosa y la hace bien. No hay roadmap de features ambiciosas, no hay frameworks, no hay arquitecturas modernas ni capas de abstracción innecesarias. Solo código simple que funciona, como las apps de antes.\n\nAsí se va a mantener.",
+    aboutPhilosophy:        "Muchas extensiones para bloquear sitios están llenas de cosas que nadie pidió: dashboards, estadísticas, suscripciones, configuraciones que llevan a más configuraciones. Eso no es lo que esto es.\n\nBlockdoze hace una cosa y la hace bien. No hay roadmap de features ambiciosas, no hay frameworks, no hay arquitecturas modernas ni capas de abstracción innecesarias. Solo código simple que funciona, como las apps de antes.\n\nAsí se va a mantener.",
     aboutStoryTitle:        "¿Por qué existe esto?",
     aboutStory:             "Empecé a usar redes sociales a los 15 años. Cerca de los 20, el hábito se volvió compulsivo: abría ciertas páginas de forma automática, sin quererlo. Probé otras extensiones y aplicaciones para bloquearlo, pero eran demasiado caras o directamente no tenían las funciones simples que necesito. Cansado de esa realidad, decidí construir esta herramienta yo mismo. La pienso seguir manteniendo.",
     aboutCreditsTitle:      "Agradecimientos",
@@ -62,7 +62,7 @@ const MESSAGES = {
     aboutDonateButton:      "Invitarme un café en Ko-fi",
   },
   en: {
-    appTitle:               "Site Blocker — Settings",
+    appTitle:               "Blockdoze",
     navDomainBlock:         "Domain Block",
     navGeneral:             "General",
     navAppearance:          "Appearance",
@@ -114,7 +114,7 @@ const MESSAGES = {
     aboutVersion:           "Version",
     aboutDescription:       "Blocks distracting websites based on days and usage time.",
     aboutPhilosophyTitle:   "Philosophy",
-    aboutPhilosophy:        "Many site blocker extensions are packed with things nobody asked for: dashboards, statistics, subscriptions, settings that lead to more settings. That's not what this is.\n\nSite Blocker does one thing and does it well. There is no ambitious feature roadmap, no frameworks, no modern architectures, no unnecessary layers of abstraction. Just simple code that works, like the apps of the past.\n\nThat's how it's going to stay.",
+    aboutPhilosophy:        "Many site blocker extensions are packed with things nobody asked for: dashboards, statistics, subscriptions, settings that lead to more settings. That's not what this is.\n\nBlockdoze does one thing and does it well. There is no ambitious feature roadmap, no frameworks, no modern architectures, no unnecessary layers of abstraction. Just simple code that works, like the apps of the past.\n\nThat's how it's going to stay.",
     aboutStoryTitle:        "Why does this exist?",
     aboutStory:             "I started using social media at 15. Around 20, the habit became compulsive: I'd open certain pages automatically, without meaning to. I tried other extensions and apps to block them, but they were too expensive or simply lacked the straightforward features I need. Tired of that reality, I decided to build this tool myself. I plan to keep maintaining it.",
     aboutCreditsTitle:      "Acknowledgements",

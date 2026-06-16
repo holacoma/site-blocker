@@ -1,5 +1,5 @@
 {
-  "appTitle":               { "message": "Site Blocker — Settings" },
+  "appTitle":               { "message": "Blockdoze" },
   "navDomainBlock":         { "message": "Domain Block" },
   "navAppearance":          { "message": "Appearance" },
   "navAbout":               { "message": "About" },

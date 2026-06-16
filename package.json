@@ -1,5 +1,5 @@
 {
-  "name": "site-blocker",
+  "name": "blockdoze",
   "private": true,
   "type": "module",
   "scripts": {
