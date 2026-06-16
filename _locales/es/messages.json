@@ -1,5 +1,5 @@
 {
-  "appTitle":               { "message": "Site Blocker — Configuración" },
+  "appTitle":               { "message": "Blockdoze" },
   "navDomainBlock":         { "message": "Bloqueo de Dominios" },
   "navAppearance":          { "message": "Apariencia" },
   "navAbout":               { "message": "Acerca de" },

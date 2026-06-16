@@ -1,4 +1,4 @@
-# Site Blocker
+# Blockdoze
 
 Extensión de Chrome (MV3) para bloquear sitios distractores según un horario configurable, con temporizadores diarios opcionales, excepciones por ruta/subdominio y dos temas visuales.
 

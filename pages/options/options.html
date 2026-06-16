@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Site Blocker — Configuración</title>
+  <title>Blockdoze</title>
   <link rel="stylesheet" href="options.css" />
   <link id="theme-css" rel="stylesheet" href="theme-sober.css" />
   <style>
@@ -21,46 +21,59 @@
 </head>
 <body>
   <canvas id="bg-canvas"></canvas>
-  <div class="window main-window">
-    <div class="title-bar">
-      <div class="title-bar-text" data-i18n="appTitle">Site Blocker — Configuración</div>
-    </div>
-    <div class="app-body">
+  <div class="app-stack">
 
-      <nav class="sidebar">
-        <button class="nav-item active" data-section="domain-block" data-i18n="navDomainBlock">Bloqueo de Dominios</button>
-        <button class="nav-item" data-section="general" data-i18n="navGeneral">General</button>
-        <button class="nav-item" data-section="block" data-i18n="navBlock">Bloqueo</button>
-        <button class="nav-item" data-section="about" data-i18n="navAbout">Acerca de</button>
-      </nav>
-
-      <div class="content">
-
-        <section id="section-domain-block" class="section active">
-          <label class="add-label" for="site-input" data-i18n="addLabel">Dominio a bloquear</label>
-          <p class="add-hint" data-i18n="addHint">Ingresá el dominio que querés bloquear. Los subdominios se bloquean automáticamente.</p>
-          <div class="add-row">
-            <input id="site-input" type="text" data-i18n-placeholder="addPlaceholder" placeholder="ejemplo.com" autocomplete="off" />
-            <button id="add-btn" data-i18n="addButton">Agregar</button>
-          </div>
-          <ul id="site-list"></ul>
-        </section>
-
-        <section id="section-general" class="section">
-          <div id="general-mount"></div>
-          <div id="appearance-mount"></div>
-        </section>
-
-        <section id="section-block" class="section">
-          <div id="block-mount"></div>
-        </section>
-
-        <section id="section-about" class="section">
-          <div id="about-mount"></div>
-        </section>
-
+    <div class="window brand-window">
+      <div class="title-bar brand-bar">
+        <div class="title-bar-text">
+          <img class="app-icon" src="../../icon.png" alt="" />
+          <span data-i18n="appTitle">Blockdoze</span>
+        </div>
       </div>
     </div>
+
+    <div class="window main-window">
+      <div class="title-bar">
+        <div class="title-bar-text" data-i18n="settingsTitle">Configuración</div>
+      </div>
+      <div class="app-body">
+
+        <nav class="sidebar">
+          <button class="nav-item active" data-section="domain-block" data-i18n="navDomainBlock">Bloqueo de Dominios</button>
+          <button class="nav-item" data-section="general" data-i18n="navGeneral">General</button>
+          <button class="nav-item" data-section="block" data-i18n="navBlock">Bloqueo</button>
+          <button class="nav-item" data-section="about" data-i18n="navAbout">Acerca de</button>
+        </nav>
+
+        <div class="content">
+
+          <section id="section-domain-block" class="section active">
+            <label class="add-label" for="site-input" data-i18n="addLabel">Dominio a bloquear</label>
+            <p class="add-hint" data-i18n="addHint">Ingresá el dominio que querés bloquear. Los subdominios se bloquean automáticamente.</p>
+            <div class="add-row">
+              <input id="site-input" type="text" data-i18n-placeholder="addPlaceholder" placeholder="ejemplo.com" autocomplete="off" />
+              <button id="add-btn" data-i18n="addButton">Agregar</button>
+            </div>
+            <ul id="site-list"></ul>
+          </section>
+
+          <section id="section-general" class="section">
+            <div id="general-mount"></div>
+            <div id="appearance-mount"></div>
+          </section>
+
+          <section id="section-block" class="section">
+            <div id="block-mount"></div>
+          </section>
+
+          <section id="section-about" class="section">
+            <div id="about-mount"></div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
   </div>
   <script src="bg.js"></script>
   <script type="module" src="options.js"></script>
