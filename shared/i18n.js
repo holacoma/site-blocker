@@ -1,6 +1,7 @@
 const MESSAGES = {
   es: {
     appTitle:               "Blockdoze",
+    settingsTitle:          "Configuración",
     navDomainBlock:         "Bloqueo de Dominios",
     navGeneral:             "General",
     navAppearance:          "Apariencia",
@@ -63,6 +64,7 @@ const MESSAGES = {
   },
   en: {
     appTitle:               "Blockdoze",
+    settingsTitle:          "Settings",
     navDomainBlock:         "Domain Block",
     navGeneral:             "General",
     navAppearance:          "Appearance",

@@ -25,12 +25,17 @@
 
 /* ── Ventana principal ── */
 
-.main-window {
+.app-stack {
   max-width: 760px;
   margin: 0 auto;
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
+
+[data-theme="retro"] .app-stack { gap: 8px; }
 
 /* ── Sober: estilos de ventana/tarjeta ── */
 
@@ -40,6 +45,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.12);
   padding: 0;
+  overflow: hidden;
 }
 
 [data-theme="sober"] .title-bar {
@@ -59,6 +65,29 @@
   margin-right: 0;
   flex: 1;
 }
+
+/* ── Banner de marca (icono + nombre, card superior) ── */
+
+.brand-bar .title-bar-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+[data-theme="sober"] .brand-bar { padding: 14px 16px; }
+[data-theme="sober"] .brand-bar .title-bar-text { font-size: 19px; font-weight: 700; }
+
+[data-theme="retro"] .brand-bar { padding: 6px 8px; }
+[data-theme="retro"] .brand-bar .title-bar-text { font-size: 14px; }
+
+.app-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 5px;
+}
+
+[data-theme="retro"] .app-icon { border-radius: 0; }
 
 [data-theme="sober"] .title-bar-controls { display: flex; gap: 4px; }
 
