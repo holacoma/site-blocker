@@ -5,11 +5,13 @@ body {
   padding: 32px 16px;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 14px;
 }
 
-
+.brand-window,
 .main-window { max-width: 400px; width: 100%; }
 
 /* Animaciones */

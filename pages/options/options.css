@@ -66,28 +66,20 @@
   flex: 1;
 }
 
-/* ── Banner de marca (icono + nombre, card superior) ── */
+/* ── Banner de marca (logo SVG, card superior) ── */
 
-.brand-bar .title-bar-text {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-[data-theme="sober"] .brand-bar { padding: 14px 16px; }
-[data-theme="sober"] .brand-bar .title-bar-text { font-size: 19px; font-weight: 700; }
-
+[data-theme="sober"] .brand-bar { padding: 12px 16px; }
 [data-theme="retro"] .brand-bar { padding: 6px 8px; }
-[data-theme="retro"] .brand-bar .title-bar-text { font-size: 14px; }
+[data-theme="retro"] .brand-bar .title-bar-text { flex: 1; }
 
-.app-icon {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  border-radius: 5px;
+.brand-logo {
+  max-height: 160px;
+  width: auto;
+  max-width: 100%;
+  display: block;
 }
 
-[data-theme="retro"] .app-icon { border-radius: 0; }
+[data-theme="retro"] .brand-logo { height: 48px; width: auto; max-height: none; }
 
 [data-theme="sober"] .title-bar-controls { display: flex; gap: 4px; }
 

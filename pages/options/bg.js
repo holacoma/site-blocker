@@ -1,5 +1,11 @@
 (function () {
+  let rafId = null;
+
+  /* ── Sober: burbujas ── */
+
   function initBubbles() {
+    if (document.getElementById("sb-bubbles")) return;
+
     const base   = "#f0eef8";
     const colors = ["#b0d4ff", "#c4b0ff", "#b0ffcc", "#ffb0cc", "#ffd0b0"];
     const opacity = 0.55;
@@ -55,6 +61,13 @@
       win.style.zIndex   = "1";
     }
   }
+
+  function stopBubbles() {
+    document.getElementById("sb-bubbles")?.remove();
+    document.getElementById("sb-bubbles-css")?.remove();
+  }
+
+  /* ── Retro: canvas con naipes ── */
 
   const canvas = document.getElementById("bg-canvas");
   const ctx    = canvas.getContext("2d");
@@ -117,10 +130,12 @@
       ctx.restore();
     }
 
-    requestAnimationFrame(tick);
+    rafId = requestAnimationFrame(tick);
   }
 
   function initCanvas() {
+    if (rafId) return;
+    canvas.style.display = "block";
     resize();
     particles = Array.from({ length: COUNT }, make);
     tick();
@@ -130,12 +145,29 @@
     });
   }
 
-  chrome.storage.local.get({ theme: "sober" }, ({ theme }) => {
+  function stopCanvas() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    canvas.style.display = "none";
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  /* ── Aplicar fondo según tema ── */
+
+  function applyBackground(theme) {
     if (theme === "sober") {
-      canvas.style.display = "none";
+      stopCanvas();
       initBubbles();
     } else {
+      stopBubbles();
       initCanvas();
+    }
+  }
+
+  chrome.storage.local.get({ theme: "sober" }, ({ theme }) => applyBackground(theme));
+
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes.theme) {
+      applyBackground(changes.theme.newValue);
     }
   });
 })();
