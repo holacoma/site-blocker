@@ -2,3 +2,4 @@ node_modules/
 coverage/
 NAMING.md
 builds/
+tmp/
