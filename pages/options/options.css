@@ -812,11 +812,20 @@
   padding: 0 8px;
   gap: 6px;
 }
+.pv-bar[data-theme="border"] {
+  height: 3px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  gap: 0;
+}
 
 /* Track & fill (default + segments + minimal) */
 .pv-track { flex: 1; border-radius: 3px; overflow: hidden; }
 .pv-bar[data-theme="default"] .pv-track { height: 5px; background: #e8eaed; }
-.pv-bar[data-theme="minimal"]  .pv-track { height: 2px; background: rgba(0,0,0,.1); }
+.pv-bar[data-theme="minimal"] .pv-track { height: 2px; background: rgba(0,0,0,.1); }
+.pv-bar[data-theme="border"]  .pv-track { width: 100%; height: 3px; background: transparent; border-radius: 0; flex: none; }
+.pv-bar[data-theme="border"]  .pv-fill  { height: 3px; border-radius: 0; width: 65%; }
 
 .pv-fill { width: 65%; height: 100%; background: #1a73e8; border-radius: 3px; }
 
@@ -857,7 +866,7 @@
 .pv-bar[data-theme="default"]  .pv-time { font-size: 8px; color: #666; }
 .pv-bar[data-theme="dots"]     .pv-time { font-size: 8px; color: #666; }
 .pv-bar[data-theme="segments"] .pv-time { font-size: 8px; color: #666; }
-.pv-bar[data-theme="minimal"]  .pv-time { font-size: 7px; color: #888; }
+.pv-bar[data-theme="minimal"] .pv-time { font-size: 7px; color: #888; }
 
 .pv-close {
   background: none !important;
@@ -874,7 +883,7 @@
 .pv-bar[data-theme="default"]  .pv-close { font-size: 13px; color: #bbb; }
 .pv-bar[data-theme="dots"]     .pv-close { font-size: 13px; color: #bbb; }
 .pv-bar[data-theme="segments"] .pv-close { font-size: 13px; color: #bbb; }
-.pv-bar[data-theme="minimal"]  .pv-close { font-size: 10px; color: rgba(0,0,0,.25); }
+.pv-bar[data-theme="minimal"] .pv-close { font-size: 10px; color: rgba(0,0,0,.25); }
 
 /* Indicador de posición */
 .pv-pos-indicator { position: absolute; }
