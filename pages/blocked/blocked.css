@@ -76,3 +76,8 @@ body {
   border-color: #bbb;
   color: #111;
 }
+
+@media (prefers-color-scheme: dark) {
+  .block-site    { color: #636366; }
+  .block-message { color: #aeaeb2; }
+}
