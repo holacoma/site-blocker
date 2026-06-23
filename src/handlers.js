@@ -147,6 +147,27 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
   });
 });
 
+chrome.runtime.onStartup.addListener(() => {
+  chrome.tabs.query({}, (tabs) => {
+    const tabHostnames = {};
+    for (const tab of tabs) {
+      try {
+        const hostname = new URL(tab.url).hostname.replace(/^www\./, "");
+        tabHostnames[String(tab.id)] = hostname;
+      } catch {}
+    }
+    chrome.storage.session.set({ tabHostnames });
+
+    chrome.tabs.query({ active: true, currentWindow: true }, ([activeTab]) => {
+      for (const tab of tabs) {
+        if (tab.id !== activeTab?.id) {
+          pauseTimerForTab(tab.id);
+        }
+      }
+    });
+  });
+});
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "BLOCK_SITE") {
     getBlockedSites((sites) => {

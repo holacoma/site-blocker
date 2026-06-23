@@ -13,6 +13,7 @@ const onRemovedCalls = chrome.tabs.onRemoved.addListener.mock.calls;
 const onRemovedHandler = onRemovedCalls[onRemovedCalls.length - 1][0];
 
 const onMessageHandler = chrome.runtime.onMessage.addListener.mock.calls[0][0];
+const onStartupHandler = chrome.runtime.onStartup.addListener.mock.calls[0][0];
 
 const allDays = [0, 1, 2, 3, 4, 5, 6];
 const SITES = [{ domain: "reddit.com", days: allDays, timerMinutes: 30, exceptions: [] }];
@@ -289,5 +290,83 @@ describe("onRemoved", () => {
 
     const setCalls = chrome.storage.local.set.mock.calls;
     expect(setCalls.find(([d]) => d.pausedTimers?.["reddit.com"] > 0)).toBeUndefined();
+  });
+});
+
+// ─── onStartup ────────────────────────────────────────────────────────────────
+
+describe("onStartup", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  test("reconstruye tabHostnames en session y pausa tabs en background", () => {
+    const expiry = Date.now() + 60_000;
+    const allTabs = [
+      { id: 1, url: "https://reddit.com/r/programming" },
+      { id: 2, url: "https://github.com/" },
+    ];
+    let sessionStore = { tabHostnames: {} };
+    chrome.tabs.query
+      .mockImplementationOnce((_q, cb) => cb(allTabs))
+      .mockImplementationOnce((_q, cb) => cb([{ id: 2, url: "https://github.com/" }]));
+    chrome.storage.session.set.mockImplementation((data) => {
+      Object.assign(sessionStore, data);
+    });
+    chrome.storage.session.get.mockImplementation((_d, cb) => cb({ ...sessionStore }));
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: { "reddit.com": expiry }, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    onStartupHandler();
+
+    expect(sessionStore.tabHostnames["1"]).toBe("reddit.com");
+    expect(sessionStore.tabHostnames["2"]).toBe("github.com");
+
+    const localSetCalls = chrome.storage.local.set.mock.calls;
+    const pauseCall = localSetCalls.find(([d]) => d.pausedTimers?.["reddit.com"] > 0);
+    expect(pauseCall).toBeDefined();
+    expect(pauseCall[0].activeTimers["reddit.com"]).toBeUndefined();
+  });
+
+  test("no pausa el tab activo", () => {
+    const expiry = Date.now() + 60_000;
+    const allTabs = [{ id: 1, url: "https://reddit.com/" }];
+    let sessionStore = { tabHostnames: {} };
+    chrome.tabs.query
+      .mockImplementationOnce((_q, cb) => cb(allTabs))
+      .mockImplementationOnce((_q, cb) => cb([{ id: 1, url: "https://reddit.com/" }]));
+    chrome.storage.session.set.mockImplementation((data) => {
+      Object.assign(sessionStore, data);
+    });
+    chrome.storage.session.get.mockImplementation((_d, cb) => cb({ ...sessionStore }));
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: { "reddit.com": expiry }, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    onStartupHandler();
+
+    const localSetCalls = chrome.storage.local.set.mock.calls;
+    expect(localSetCalls.find(([d]) => d.pausedTimers?.["reddit.com"] > 0)).toBeUndefined();
+  });
+
+  test("ignora tabs sin URL valida al reconstruir tabHostnames", () => {
+    chrome.tabs.query
+      .mockImplementationOnce((_q, cb) => cb([{ id: 3, url: undefined }, { id: 4, url: "https://reddit.com/" }]))
+      .mockImplementationOnce((_q, cb) => cb([{ id: 4, url: "https://reddit.com/" }]));
+    let sessionStore = { tabHostnames: {} };
+    chrome.storage.session.set.mockImplementation((data) => {
+      Object.assign(sessionStore, data);
+    });
+    chrome.storage.session.get.mockImplementation((_d, cb) => cb({ ...sessionStore }));
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: {}, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    onStartupHandler();
+
+    expect(sessionStore.tabHostnames["3"]).toBeUndefined();
+    expect(sessionStore.tabHostnames["4"]).toBe("reddit.com");
   });
 });
