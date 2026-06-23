@@ -1,5 +1,5 @@
 import { BlockedSite } from "../shared/BlockedSite.js";
-import { getFullState, getBlockedSites } from "../shared/storage.js";
+import { getFullState, getBlockedSites, saveBlockedSites } from "../shared/storage.js";
 import { isAlwaysAllowed, isBlocked } from "./blocking.js";
 import { pauseTimerForTab, resumeTimerForTab } from "./timer.js";
 
@@ -148,6 +148,22 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === "BLOCK_SITE") {
+    getBlockedSites((sites) => {
+      if (sites.some((s) => s.domain === msg.domain)) {
+        sendResponse({ ok: false });
+        return;
+      }
+      const newSite = new BlockedSite({
+        domain: msg.domain,
+        timerMinutes: msg.timerMinutes,
+        days: msg.days,
+      });
+      saveBlockedSites([...sites, newSite], () => sendResponse({ ok: true }));
+    });
+    return true;
+  }
+
   if (msg.type === "REDIRECT_TO_BLOCKED") {
     if (sender.tab?.id) {
       chrome.tabs.update(sender.tab.id, {
