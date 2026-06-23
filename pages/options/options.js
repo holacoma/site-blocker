@@ -198,10 +198,10 @@ function addSite() {
     .replace(/\/.*$/, "");
   if (!raw) return;
 
-  chrome.storage.sync.get({ blockedSites: [] }, ({ blockedSites }) => {
+  chrome.storage.sync.get({ blockedSites: [], defaultTimerMinutes: 5 }, ({ blockedSites, defaultTimerMinutes }) => {
     const sites = blockedSites.map(BlockedSite.from);
     if (!sites.some((s) => s.domain === raw)) {
-      const updated = [...sites, new BlockedSite({ domain: raw })];
+      const updated = [...sites, new BlockedSite({ domain: raw, timerMinutes: defaultTimerMinutes })];
       save(updated, load);
     }
     input.value = "";
