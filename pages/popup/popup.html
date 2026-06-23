@@ -42,7 +42,9 @@
       background: var(--popup-bg);
       color: var(--popup-text);
       width: 220px;
+      min-width: 220px;
       padding: 1rem;
+      overflow: visible;
     }
     .status {
       display: flex;
@@ -65,7 +67,13 @@
     .status-text  { font-size: 0.8rem; color: var(--popup-text-muted); line-height: 1.3; }
     .site-label   { font-family: monospace; color: var(--popup-text-label); font-size: 0.85rem; }
     .timer-label  { font-family: monospace; color: var(--popup-timer-color); font-size: 0.78rem; }
-    button.settings {
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    button.settings,
+    button.block-site {
       width: 100%;
       background: var(--popup-btn-bg);
       border: 1px solid var(--popup-btn-border);
@@ -76,10 +84,20 @@
       font-size: 0.82rem;
       text-align: center;
     }
-    button.settings:hover {
+    button.settings:hover,
+    button.block-site:hover {
       background: var(--popup-btn-hover-bg);
       color: var(--popup-btn-hover-color);
       border-color: var(--popup-btn-hover-border);
+    }
+    button.block-site--pending {
+      border-color: #c0392b;
+      color: #c0392b;
+    }
+    button.block-site--pending:hover {
+      background: #c0392b;
+      color: #fff;
+      border-color: #c0392b;
     }
   </style>
 </head>
@@ -88,7 +106,10 @@
     <div class="dot unknown" id="dot"></div>
     <div class="status-text" id="status-text">Cargando...</div>
   </div>
-  <button class="settings" id="open-settings">⚙ Abrir configuración</button>
+  <div class="btn-row">
+    <button class="block-site" id="block-site" style="display:none">(/) Block this site</button>
+    <button class="settings" id="open-settings">&#9881; Settings</button>
+  </div>
   <script type="module" src="popup.js"></script>
 </body>
 </html>

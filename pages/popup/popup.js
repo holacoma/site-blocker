@@ -1,7 +1,17 @@
-const dot        = document.getElementById("dot");
-const statusText = document.getElementById("status-text");
+import { t, setLang } from "../../shared/i18n.js";
+import { BlockedSite } from "../../shared/BlockedSite.js";
 
-document.getElementById("open-settings").addEventListener("click", () => {
+const dot           = document.getElementById("dot");
+const statusText    = document.getElementById("status-text");
+const blockSiteBtn  = document.getElementById("block-site");
+const settingsBtn   = document.getElementById("open-settings");
+
+chrome.storage.sync.get({ lang: "es" }, ({ lang }) => {
+  setLang(lang);
+  settingsBtn.textContent = "⚙ " + t("settingsTitle");
+});
+
+settingsBtn.addEventListener("click", () => {
   chrome.runtime.openOptionsPage();
 });
 
@@ -13,7 +23,7 @@ function formatMs(ms) {
 
 function showBlocked(hostname) {
   dot.className = "dot blocked";
-  statusText.innerHTML = `<span class="site-label">${hostname}</span><br>Sitio bloqueado`;
+  statusText.innerHTML = `<span class="site-label">${hostname}</span><br>${t("blockSiteBlocked")}`;
 }
 
 function showTimer(hostname, expiry) {
@@ -31,12 +41,53 @@ function showTimer(hostname, expiry) {
 
 function showAllowed(hostname) {
   dot.className = "dot allowed";
-  statusText.innerHTML = `<span class="site-label">${hostname}</span><br>No bloqueado`;
+  statusText.innerHTML = `<span class="site-label">${hostname}</span><br>Not blocked`;
 }
 
 function showUnknown() {
   dot.className = "dot unknown";
-  statusText.textContent = "Sin información";
+  statusText.textContent = "No information";
+}
+
+function setupBlockButton(hostname) {
+  blockSiteBtn.textContent = `(/) ${t("blockSiteLabel")}`;
+  blockSiteBtn.style.display = "";
+
+  let pending = false;
+  let timer   = null;
+
+  function reset() {
+    pending = false;
+    clearTimeout(timer);
+    blockSiteBtn.textContent = `(/) ${t("blockSiteLabel")}`;
+    blockSiteBtn.classList.remove("block-site--pending");
+  }
+
+  blockSiteBtn.addEventListener("click", () => {
+    if (!pending) {
+      pending = true;
+      blockSiteBtn.textContent = t("blockSiteConfirm");
+      blockSiteBtn.classList.add("block-site--pending");
+      timer = setTimeout(reset, 3000);
+    } else {
+      clearTimeout(timer);
+      blockSiteBtn.disabled = true;
+      chrome.storage.sync.get({ blockedSites: [], defaultTimerMinutes: 5 }, ({ blockedSites, defaultTimerMinutes }) => {
+        const newSite = new BlockedSite({
+          domain: hostname,
+          timerMinutes: defaultTimerMinutes,
+          days: [0, 1, 2, 3, 4, 5, 6],
+        });
+        const updated = [...blockedSites, newSite.toJSON()];
+        chrome.storage.sync.set({ blockedSites: updated }, () => {
+          blockSiteBtn.style.display = "none";
+          showBlocked(hostname);
+        });
+      });
+    }
+  });
+
+  blockSiteBtn.addEventListener("blur", reset);
 }
 
 chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
@@ -52,7 +103,11 @@ chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
   }
 
   chrome.runtime.sendMessage({ type: "GET_SITE_CONFIG", domain: hostname }, (resp) => {
-    if (!resp?.entry) { showAllowed(hostname); return; }
+    if (!resp?.entry) {
+      showAllowed(hostname);
+      setupBlockButton(hostname);
+      return;
+    }
 
     chrome.runtime.sendMessage({ type: "GET_TIMER_STATE", domain: hostname }, (timerResp) => {
       const expiry = timerResp?.expiry;
