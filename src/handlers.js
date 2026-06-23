@@ -14,9 +14,17 @@ chrome.webNavigation.onCommitted.addListener((details) => {
   try {
     const hostname = new URL(details.url).hostname.replace(/^www\./, "");
     console.log("[SB] onCommitted tab=" + details.tabId + " hostname=" + hostname);
-    chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
-      tabHostnames[String(details.tabId)] = hostname;
-      chrome.storage.session.set({ tabHostnames });
+    chrome.storage.session.get({ tabHostnames: {}, activeTabPerWindow: {} }, (data) => {
+      data.tabHostnames[String(details.tabId)] = hostname;
+      chrome.tabs.get(details.tabId, (tab) => {
+        if (!chrome.runtime.lastError && tab?.active) {
+          data.activeTabPerWindow[String(tab.windowId)] = details.tabId;
+        }
+        chrome.storage.session.set({
+          tabHostnames: data.tabHostnames,
+          activeTabPerWindow: data.activeTabPerWindow,
+        });
+      });
     });
   } catch {}
 });
@@ -234,8 +242,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ expiry: null });
         return;
       }
-      chrome.storage.local.get({ activeTimers: {} }, ({ activeTimers }) => {
-        sendResponse({ expiry: activeTimers[site.domain] ?? null });
+      chrome.storage.local.get({ activeTimers: {}, pausedTimers: {} }, ({ activeTimers, pausedTimers }) => {
+        const expiry = activeTimers[site.domain] ?? null;
+        const pausedRemaining = pausedTimers[site.domain] ?? null;
+        sendResponse(pausedRemaining ? { expiry, pausedRemaining } : { expiry });
       });
     });
     return true;

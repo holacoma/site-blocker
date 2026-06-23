@@ -117,8 +117,11 @@ chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
 
     chrome.runtime.sendMessage({ type: "GET_TIMER_STATE", domain: hostname }, (timerResp) => {
       const expiry = timerResp?.expiry;
+      const pausedRemaining = timerResp?.pausedRemaining;
       if (expiry && Date.now() < expiry) {
         showTimer(hostname, expiry);
+      } else if (pausedRemaining > 0) {
+        showTimer(hostname, Date.now() + pausedRemaining);
       } else {
         showBlocked(hostname);
       }
