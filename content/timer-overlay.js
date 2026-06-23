@@ -3,11 +3,24 @@
   if (!hostname) return;
 
   let started = false;
+  let activeInterval = null;
+  let activeBar = null;
+
+  function stopNormalPhase() {
+    if (activeInterval !== null) {
+      clearInterval(activeInterval);
+      activeInterval = null;
+    }
+    if (activeBar !== null) {
+      activeBar.remove();
+      activeBar = null;
+    }
+    started = false;
+  }
 
   function startIfValid(expiry) {
     if (started || !expiry || Date.now() >= expiry) return;
     started = true;
-    chrome.storage.onChanged.removeListener(onStorageChange);
     chrome.storage.local.get(
       { overlayBarTheme: "default", overlayBarPosition: "bottom", overlayExpiryTheme: "default" },
       ({ overlayBarTheme, overlayBarPosition, overlayExpiryTheme }) => {
@@ -19,7 +32,11 @@
   function onStorageChange(changes, area) {
     if (area !== "local" || !changes.activeTimers) return;
     chrome.runtime.sendMessage({ type: "GET_TIMER_STATE", domain: hostname }, (resp) => {
-      startIfValid(resp?.expiry);
+      if (!resp?.expiry) {
+        stopNormalPhase();
+        return;
+      }
+      startIfValid(resp.expiry);
     });
   }
   chrome.storage.onChanged.addListener(onStorageChange);
@@ -113,6 +130,7 @@
 
     const totalMs = expiry - Date.now();
     const bar = createFooterBar(safeBarTheme, barPosition);
+    activeBar = bar;
     document.body.appendChild(bar);
 
     updateBar(bar, safeBarTheme, barPosition, totalMs, totalMs);
@@ -130,12 +148,15 @@
       const remaining = expiry - Date.now();
       if (remaining <= 0) {
         clearInterval(interval);
+        activeInterval = null;
+        activeBar = null;
         bar.remove();
         startExpiryPhase();
         return;
       }
       if (!dismissed) updateBar(bar, safeBarTheme, barPosition, remaining, totalMs);
     }, 250);
+    activeInterval = interval;
   }
 
   function createFooterBar(barTheme, barPosition) {

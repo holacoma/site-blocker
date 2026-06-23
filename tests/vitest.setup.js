@@ -5,6 +5,7 @@ global.chrome = {
   runtime: {
     getURL: (path) => `chrome-extension://test/${path}`,
     onMessage: { addListener: vi.fn() },
+    onStartup: { addListener: vi.fn() },
   },
   storage: {
     sync:    { get: vi.fn() },

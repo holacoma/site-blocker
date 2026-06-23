@@ -13,6 +13,7 @@ const onRemovedCalls = chrome.tabs.onRemoved.addListener.mock.calls;
 const onRemovedHandler = onRemovedCalls[onRemovedCalls.length - 1][0];
 
 const onMessageHandler = chrome.runtime.onMessage.addListener.mock.calls[0][0];
+const onStartupHandler = chrome.runtime.onStartup.addListener.mock.calls[0][0];
 
 const allDays = [0, 1, 2, 3, 4, 5, 6];
 const SITES = [{ domain: "reddit.com", days: allDays, timerMinutes: 30, exceptions: [] }];
@@ -23,7 +24,10 @@ describe("onCommitted", () => {
   afterEach(() => vi.clearAllMocks());
 
   test("registra el hostname del tab en storage.session", () => {
-    chrome.storage.session.get.mockImplementation((_d, cb) => cb({ tabHostnames: {} }));
+    chrome.storage.session.get.mockImplementation((_d, cb) =>
+      cb({ tabHostnames: {}, activeTabPerWindow: {} })
+    );
+    chrome.tabs.get.mockImplementation((_id, cb) => cb({ windowId: 1, active: false }));
     committedHandler({ tabId: 42, frameId: 0, url: "https://reddit.com/r/programming" });
     const setCall = chrome.storage.session.set.mock.calls[0];
     expect(setCall[0].tabHostnames["42"]).toBe("reddit.com");
@@ -114,6 +118,39 @@ describe("onBeforeNavigate — pause timer on departure", () => {
     const setCalls = chrome.storage.local.set.mock.calls;
     const pauseCall = setCalls.find(([data]) => data.pausedTimers?.["reddit.com"] > 0);
     expect(pauseCall).toBeUndefined();
+  });
+});
+
+// ─── onCommitted — sync activeTabPerWindow ────────────────────────────────────
+
+describe("onCommitted — sincroniza activeTabPerWindow", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  // Regression: al recargar la extension, activeTabPerWindow queda vacío.
+  // Si el usuario ya estaba en la pestaña bloqueada y navega dentro de ella,
+  // onCommitted debe registrar esa pestaña como activa en su ventana.
+  // Sin esto, al cambiar de pestaña onActivated no conoce la pestaña anterior
+  // y no llama pauseTimerForTab → el timer sigue corriendo.
+  test("registra la pestaña activa en activeTabPerWindow cuando navega en primer plano", () => {
+    let sessionStore = { tabHostnames: {}, activeTabPerWindow: {} };
+    chrome.storage.session.get.mockImplementation((_d, cb) => cb({ ...sessionStore }));
+    chrome.storage.session.set.mockImplementation((data) => { Object.assign(sessionStore, data); });
+    chrome.tabs.get.mockImplementation((_id, cb) => cb({ windowId: 99, active: true }));
+
+    committedHandler({ tabId: 7, frameId: 0, url: "https://reddit.com/r/programming" });
+
+    expect(sessionStore.activeTabPerWindow["99"]).toBe(7);
+  });
+
+  test("no modifica activeTabPerWindow si la pestaña está en background", () => {
+    let sessionStore = { tabHostnames: {}, activeTabPerWindow: { "99": 5 } };
+    chrome.storage.session.get.mockImplementation((_d, cb) => cb({ ...sessionStore }));
+    chrome.storage.session.set.mockImplementation((data) => { Object.assign(sessionStore, data); });
+    chrome.tabs.get.mockImplementation((_id, cb) => cb({ windowId: 99, active: false }));
+
+    committedHandler({ tabId: 7, frameId: 0, url: "https://reddit.com/r/programming" });
+
+    expect(sessionStore.activeTabPerWindow["99"]).toBe(5);
   });
 });
 
@@ -241,6 +278,43 @@ describe("GET_TIMER_STATE message handler", () => {
     onMessageHandler({ type: "GET_TIMER_STATE", domain: "music.youtube.com" }, {}, sendResponse);
     expect(sendResponse).toHaveBeenCalledWith({ expiry: null });
   });
+
+  // Bug: el test anterior no mockeaba activeTimers, entonces pasaba aunque
+  // isAlwaysAllowed estuviera roto (ambos caminos devuelven null).
+  // Este test verifica el caso real: timer activo del padre + excepción.
+  test("retorna null para excepción aunque el timer del padre esté corriendo", () => {
+    const expiry = Date.now() + 30_000;
+    const sendResponse = vi.fn();
+    const ytSites = [{ domain: "youtube.com", days: allDays, timerMinutes: 30, exceptions: ["music.youtube.com"] }];
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: ytSites }));
+    chrome.storage.local.get.mockImplementation((_d, cb) => cb({ activeTimers: { "youtube.com": expiry } }));
+    onMessageHandler({ type: "GET_TIMER_STATE", domain: "music.youtube.com" }, {}, sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({ expiry: null });
+  });
+
+  test("devuelve el expiry del timer activo para el dominio bloqueado (popup)", () => {
+    const expiry = Date.now() + 30_000;
+    const sendResponse = vi.fn();
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: { "reddit.com": expiry }, pausedTimers: {} })
+    );
+    onMessageHandler({ type: "GET_TIMER_STATE", domain: "reddit.com" }, {}, sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({ expiry });
+  });
+
+  // El popup debe mostrar tiempo restante aunque el timer esté en pausa
+  // (el usuario tiene tiempo sin usar, pero está en otro tab)
+  test("incluye pausedRemaining cuando el timer está pausado", () => {
+    const remaining = 45_000;
+    const sendResponse = vi.fn();
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: {}, pausedTimers: { "reddit.com": remaining } })
+    );
+    onMessageHandler({ type: "GET_TIMER_STATE", domain: "reddit.com" }, {}, sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({ expiry: null, pausedRemaining: remaining });
+  });
 });
 
 // ─── onRemoved ────────────────────────────────────────────────────────────────
@@ -289,5 +363,83 @@ describe("onRemoved", () => {
 
     const setCalls = chrome.storage.local.set.mock.calls;
     expect(setCalls.find(([d]) => d.pausedTimers?.["reddit.com"] > 0)).toBeUndefined();
+  });
+});
+
+// ─── onStartup ────────────────────────────────────────────────────────────────
+
+describe("onStartup", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  test("reconstruye tabHostnames en session y pausa tabs en background", () => {
+    const expiry = Date.now() + 60_000;
+    const allTabs = [
+      { id: 1, url: "https://reddit.com/r/programming" },
+      { id: 2, url: "https://github.com/" },
+    ];
+    let sessionStore = { tabHostnames: {} };
+    chrome.tabs.query
+      .mockImplementationOnce((_q, cb) => cb(allTabs))
+      .mockImplementationOnce((_q, cb) => cb([{ id: 2, url: "https://github.com/" }]));
+    chrome.storage.session.set.mockImplementation((data) => {
+      Object.assign(sessionStore, data);
+    });
+    chrome.storage.session.get.mockImplementation((_d, cb) => cb({ ...sessionStore }));
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: { "reddit.com": expiry }, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    onStartupHandler();
+
+    expect(sessionStore.tabHostnames["1"]).toBe("reddit.com");
+    expect(sessionStore.tabHostnames["2"]).toBe("github.com");
+
+    const localSetCalls = chrome.storage.local.set.mock.calls;
+    const pauseCall = localSetCalls.find(([d]) => d.pausedTimers?.["reddit.com"] > 0);
+    expect(pauseCall).toBeDefined();
+    expect(pauseCall[0].activeTimers["reddit.com"]).toBeUndefined();
+  });
+
+  test("no pausa el tab activo", () => {
+    const expiry = Date.now() + 60_000;
+    const allTabs = [{ id: 1, url: "https://reddit.com/" }];
+    let sessionStore = { tabHostnames: {} };
+    chrome.tabs.query
+      .mockImplementationOnce((_q, cb) => cb(allTabs))
+      .mockImplementationOnce((_q, cb) => cb([{ id: 1, url: "https://reddit.com/" }]));
+    chrome.storage.session.set.mockImplementation((data) => {
+      Object.assign(sessionStore, data);
+    });
+    chrome.storage.session.get.mockImplementation((_d, cb) => cb({ ...sessionStore }));
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: { "reddit.com": expiry }, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    onStartupHandler();
+
+    const localSetCalls = chrome.storage.local.set.mock.calls;
+    expect(localSetCalls.find(([d]) => d.pausedTimers?.["reddit.com"] > 0)).toBeUndefined();
+  });
+
+  test("ignora tabs sin URL valida al reconstruir tabHostnames", () => {
+    chrome.tabs.query
+      .mockImplementationOnce((_q, cb) => cb([{ id: 3, url: undefined }, { id: 4, url: "https://reddit.com/" }]))
+      .mockImplementationOnce((_q, cb) => cb([{ id: 4, url: "https://reddit.com/" }]));
+    let sessionStore = { tabHostnames: {} };
+    chrome.storage.session.set.mockImplementation((data) => {
+      Object.assign(sessionStore, data);
+    });
+    chrome.storage.session.get.mockImplementation((_d, cb) => cb({ ...sessionStore }));
+    chrome.storage.sync.get.mockImplementation((_d, cb) => cb({ blockedSites: SITES }));
+    chrome.storage.local.get.mockImplementation((_d, cb) =>
+      cb({ activeTimers: {}, usedTimerDates: {}, pausedTimers: {} })
+    );
+
+    onStartupHandler();
+
+    expect(sessionStore.tabHostnames["3"]).toBeUndefined();
+    expect(sessionStore.tabHostnames["4"]).toBe("reddit.com");
   });
 });
