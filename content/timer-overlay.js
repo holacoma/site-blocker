@@ -186,12 +186,18 @@
     const countdown = overlay.querySelector("#sb-countdown");
     const miniCount = mini.querySelector("#sb-mini-count");
 
-    overlay.querySelector("#sb-minimize").addEventListener("click", () => {
-      overlay.style.setProperty("display", "none", "important");
-      mini.style.removeProperty("display");
+    overlay.addEventListener("click", () => {
+      overlay.classList.add("sb-minimizing");
+      setTimeout(() => {
+        mini.classList.add("sb-mini-entering");
+        mini.style.removeProperty("display");
+      }, 2500);
+      setTimeout(() => overlay.style.setProperty("display", "none", "important"), 3000);
     });
     mini.addEventListener("click", () => {
       mini.style.setProperty("display", "none", "important");
+      mini.classList.remove("sb-mini-entering");
+      overlay.classList.remove("sb-minimizing");
       overlay.style.removeProperty("display");
     });
 
