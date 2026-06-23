@@ -1,12 +1,11 @@
-import { t, setLang } from "../../shared/i18n.js";
+import { t, initLang } from "../../shared/i18n.js";
 
 const dot           = document.getElementById("dot");
 const statusText    = document.getElementById("status-text");
 const blockSiteBtn  = document.getElementById("block-site");
 const settingsBtn   = document.getElementById("open-settings");
 
-chrome.storage.sync.get({ lang: "es" }, ({ lang }) => {
-  setLang(lang);
+initLang().then(() => {
   settingsBtn.textContent = "⚙ " + t("settingsTitle");
 });
 

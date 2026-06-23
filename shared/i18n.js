@@ -159,3 +159,17 @@ export function getLang() {
 }
 
 export const t = (key) => MESSAGES[_lang]?.[key] ?? MESSAGES["es"]?.[key] ?? key;
+
+const SUPPORTED_CODES = SUPPORTED_LANGS.map((l) => l.code);
+
+export async function initLang() {
+  const { language } = await chrome.storage.local.get("language");
+  if (language && SUPPORTED_CODES.includes(language)) {
+    _lang = language;
+    return;
+  }
+
+  const uiLang = chrome.i18n.getUILanguage();
+  const code = uiLang.split("-")[0];
+  _lang = SUPPORTED_CODES.includes(code) ? code : "es";
+}

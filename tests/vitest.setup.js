@@ -1,4 +1,7 @@
 global.chrome = {
+  i18n: {
+    getUILanguage: vi.fn().mockReturnValue("es"),
+  },
   runtime: {
     getURL: (path) => `chrome-extension://test/${path}`,
     onMessage: { addListener: vi.fn() },
