@@ -30,6 +30,12 @@ function makeSettingRow(titleKey, subtitleKey, control) {
 export function renderGeneral(themeLink) {
   const mount = document.getElementById("general-mount");
 
+  // ── Dark mode toggle ──
+  const darkToggle = document.createElement("button");
+  darkToggle.type = "button";
+  darkToggle.id = "dark-mode-toggle";
+  darkToggle.className = "toggle-btn";
+
   // ── Theme select ──
   const themeSelect = document.createElement("select");
   themeSelect.id = "theme-select";
@@ -54,9 +60,24 @@ export function renderGeneral(themeLink) {
   const divider = document.createElement("hr");
   divider.className = "setting-divider";
 
+  mount.appendChild(makeSettingRow("darkModeLabel", "darkModeSubtitle", darkToggle));
   mount.appendChild(makeSettingRow("themeLabel", "themeSubtitle", themeSelect));
   mount.appendChild(divider);
   mount.appendChild(makeSettingRow("languageLabel", "languageSubtitle", langSelect));
+
+  // Dark mode logic
+  function setToggle(enabled) {
+    darkToggle.setAttribute("aria-pressed", String(enabled));
+    darkToggle.textContent = enabled ? "On" : "Off";
+  }
+
+  chrome.storage.local.get({ darkMode: true }, ({ darkMode }) => setToggle(darkMode));
+
+  darkToggle.addEventListener("click", () => {
+    const newValue = darkToggle.getAttribute("aria-pressed") !== "true";
+    chrome.storage.local.set({ darkMode: newValue });
+    setToggle(newValue);
+  });
 
   // Theme logic
   function applyTheme(theme) {
