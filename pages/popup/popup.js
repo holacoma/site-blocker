@@ -1,5 +1,4 @@
 import { t, setLang } from "../../shared/i18n.js";
-import { BlockedSite } from "../../shared/BlockedSite.js";
 
 const dot           = document.getElementById("dot");
 const statusText    = document.getElementById("status-text");
@@ -49,8 +48,8 @@ function showUnknown() {
   statusText.textContent = "No information";
 }
 
-function setupBlockButton(hostname) {
-  blockSiteBtn.textContent = `(/) ${t("blockSiteLabel")}`;
+function setupBlockButton(hostname, tabId) {
+  blockSiteBtn.textContent = `⊘ ${t("blockSiteLabel")}`;
   blockSiteBtn.style.display = "";
 
   let pending = false;
@@ -59,7 +58,7 @@ function setupBlockButton(hostname) {
   function reset() {
     pending = false;
     clearTimeout(timer);
-    blockSiteBtn.textContent = `(/) ${t("blockSiteLabel")}`;
+    blockSiteBtn.textContent = `⊘ ${t("blockSiteLabel")}`;
     blockSiteBtn.classList.remove("block-site--pending");
   }
 
@@ -72,17 +71,25 @@ function setupBlockButton(hostname) {
     } else {
       clearTimeout(timer);
       blockSiteBtn.disabled = true;
-      chrome.storage.sync.get({ blockedSites: [], defaultTimerMinutes: 5 }, ({ blockedSites, defaultTimerMinutes }) => {
-        const newSite = new BlockedSite({
-          domain: hostname,
-          timerMinutes: defaultTimerMinutes,
-          days: [0, 1, 2, 3, 4, 5, 6],
-        });
-        const updated = [...blockedSites, newSite.toJSON()];
-        chrome.storage.sync.set({ blockedSites: updated }, () => {
-          blockSiteBtn.style.display = "none";
-          showBlocked(hostname);
-        });
+      chrome.storage.sync.get({ defaultTimerMinutes: 5 }, ({ defaultTimerMinutes }) => {
+        chrome.runtime.sendMessage(
+          { type: "BLOCK_SITE", domain: hostname, timerMinutes: defaultTimerMinutes, days: [0, 1, 2, 3, 4, 5, 6] },
+          ({ ok }) => {
+            if (!ok) return;
+            if (defaultTimerMinutes > 0) {
+              const expiry = Date.now() + defaultTimerMinutes * 60 * 1000;
+              chrome.runtime.sendMessage(
+                { type: "START_TIMER", domain: hostname, minutes: defaultTimerMinutes },
+                () => {
+                  blockSiteBtn.style.display = "none";
+                  showTimer(hostname, expiry);
+                }
+              );
+            } else {
+              chrome.tabs.reload(tabId);
+            }
+          }
+        );
       });
     }
   });
@@ -105,7 +112,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
   chrome.runtime.sendMessage({ type: "GET_SITE_CONFIG", domain: hostname }, (resp) => {
     if (!resp?.entry) {
       showAllowed(hostname);
-      setupBlockButton(hostname);
+      setupBlockButton(hostname, tab.id);
       return;
     }
 
