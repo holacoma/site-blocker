@@ -1,74 +1,6 @@
 (function () {
   let rafId = null;
 
-  /* ── Sober: burbujas ── */
-
-  function initBubbles() {
-    if (document.getElementById("sb-bubbles")) return;
-
-    const base   = "#f0eef8";
-    const colors = ["#b0d4ff", "#c4b0ff", "#b0ffcc", "#ffb0cc", "#ffd0b0"];
-    const opacity = 0.55;
-
-    const defs = [
-      [  8,  8, 580,  8,   0, [[ 25, 15], [ 10, 35]              ]],
-      [ 60,  5, 500, 15,  -5, [[-20, 20], [-30,  5], [-10, 30]   ]],
-      [  5, 50, 560, 22, -10, [[ 30,-20], [ 15,-38]              ]],
-      [ 65, 55, 460, 12,  -3, [[-25,-15], [-10,-32]              ]],
-      [ 38, 30, 420, 28, -14, [[ 20,-10], [  5,-28], [-18,-12], [-5, 10]]],
-    ];
-
-    let css =
-      `body{background:${base}!important;}` +
-      `#sb-bubbles{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none;` +
-      `transform:scale(1.5);transform-origin:50% 50%;}`;
-
-    defs.forEach(([l, t, sz, dur, del, pts], i) => {
-      const total = pts.length + 1;
-      let kf = `@keyframes sb-b${i}{0%{transform:translate(0,0)}`;
-      pts.forEach(([tx, ty], j) => {
-        const pct = Math.round(((j + 1) / total) * 100);
-        kf += `${pct}%{transform:translate(${tx}vw,${ty}vh)}`;
-      });
-      kf += `100%{transform:translate(0,0)}}`;
-
-      css += kf +
-        `#sb-b${i}{` +
-          `position:absolute;left:${l}%;top:${t}%;` +
-          `width:${sz}px;height:${sz}px;border-radius:50%;` +
-          `background:${colors[i]};filter:blur(90px);opacity:${opacity};` +
-          `animation:sb-b${i} ${dur}s ${del}s ease-in-out infinite;` +
-        `}`;
-    });
-
-    const style = document.createElement("style");
-    style.id = "sb-bubbles-css";
-    style.textContent = css;
-    document.head.appendChild(style);
-
-    const wrap = document.createElement("div");
-    wrap.id = "sb-bubbles";
-    defs.forEach((_, i) => {
-      const el = document.createElement("div");
-      el.id = `sb-b${i}`;
-      wrap.appendChild(el);
-    });
-    document.body.prepend(wrap);
-
-    const win = document.querySelector(".main-window");
-    if (win) {
-      win.style.position = "relative";
-      win.style.zIndex   = "1";
-    }
-  }
-
-  function stopBubbles() {
-    document.getElementById("sb-bubbles")?.remove();
-    document.getElementById("sb-bubbles-css")?.remove();
-  }
-
-  /* ── Retro: canvas con naipes ── */
-
   const canvas = document.getElementById("bg-canvas");
   const ctx    = canvas.getContext("2d");
 
@@ -133,7 +65,7 @@
     rafId = requestAnimationFrame(tick);
   }
 
-  function initCanvas() {
+  function startCanvas() {
     if (rafId) return;
     canvas.style.display = "block";
     resize();
@@ -151,23 +83,31 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
-  /* ── Aplicar fondo según tema ── */
+  const darkMq = matchMedia("(prefers-color-scheme: dark)");
 
-  function applyBackground(theme) {
-    if (theme === "sober") {
-      stopCanvas();
-      initBubbles();
+  function applyDarkMode(isDark) {
+    document.documentElement.dataset.darkmode = isDark ? "on" : "off";
+    if (isDark) startCanvas();
+    else        stopCanvas();
+  }
+
+  function onMqChange(e) { applyDarkMode(e.matches); }
+
+  function setDarkMode(enabled) {
+    darkMq.removeEventListener("change", onMqChange);
+    if (enabled) {
+      applyDarkMode(darkMq.matches);
+      darkMq.addEventListener("change", onMqChange);
     } else {
-      stopBubbles();
-      initCanvas();
+      applyDarkMode(false);
     }
   }
 
-  chrome.storage.local.get({ theme: "sober" }, ({ theme }) => applyBackground(theme));
+  chrome.storage.local.get({ darkMode: true }, ({ darkMode }) => setDarkMode(darkMode));
 
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === "local" && changes.theme) {
-      applyBackground(changes.theme.newValue);
+    if (area === "local" && "darkMode" in changes) {
+      setDarkMode(changes.darkMode.newValue);
     }
   });
 })();
