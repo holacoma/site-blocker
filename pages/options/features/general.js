@@ -57,9 +57,18 @@ export function renderGeneral(themeLink) {
     langSelect.appendChild(opt);
   });
 
+  // ── Default timer input ──
+  const defaultTimerInput = document.createElement("input");
+  defaultTimerInput.type = "number";
+  defaultTimerInput.id = "default-timer-input";
+  defaultTimerInput.min = "0";
+  defaultTimerInput.max = "480";
+  defaultTimerInput.placeholder = t("defaultTimerPlaceholder");
+
   const divider = document.createElement("hr");
   divider.className = "setting-divider";
 
+  mount.appendChild(makeSettingRow("defaultTimerLabel", "defaultTimerSubtitle", defaultTimerInput));
   mount.appendChild(makeSettingRow("darkModeLabel", "darkModeSubtitle", darkToggle));
   mount.appendChild(makeSettingRow("themeLabel", "themeSubtitle", themeSelect));
   mount.appendChild(divider);
@@ -92,6 +101,17 @@ export function renderGeneral(themeLink) {
     const theme = themeSelect.value;
     chrome.storage.local.set({ theme });
     applyTheme(theme);
+  });
+
+  // Default timer logic
+  chrome.storage.sync.get({ defaultTimerMinutes: 5 }, ({ defaultTimerMinutes }) => {
+    defaultTimerInput.value = defaultTimerMinutes;
+  });
+
+  defaultTimerInput.addEventListener("change", () => {
+    const val = Math.max(0, parseInt(defaultTimerInput.value, 10) || 0);
+    defaultTimerInput.value = val;
+    chrome.storage.sync.set({ defaultTimerMinutes: val });
   });
 
   // Language logic — reload so all strings re-render with the new lang
