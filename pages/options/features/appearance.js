@@ -142,6 +142,8 @@ function buildBarPreview(themeId) {
       inner +
       '<span class="pv-time">3:45 restantes</span>' +
       '<button class="pv-close" tabindex="-1">×</button>';
+  } else if (themeId === "border") {
+    bar.innerHTML = '<div class="pv-track"><div class="pv-fill"></div></div>';
   } else {
     bar.innerHTML =
       '<div class="pv-track"><div class="pv-fill"></div></div>' +

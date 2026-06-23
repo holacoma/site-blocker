@@ -40,10 +40,13 @@
     updateBar(bar, barTheme, barPosition, totalMs, totalMs);
 
     let dismissed = false;
-    bar.querySelector("#sb-close").addEventListener("click", () => {
-      dismissed = true;
-      bar.style.setProperty("display", "none", "important");
-    });
+    const closeBtn = bar.querySelector("#sb-close");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        dismissed = true;
+        bar.style.setProperty("display", "none", "important");
+      });
+    }
 
     const interval = setInterval(() => {
       const remaining = expiry - Date.now();
@@ -64,8 +67,10 @@
     const min = Math.floor(remaining / 60000);
     const sec = Math.floor((remaining % 60000) / 1000);
     const timeStr = `${min}:${String(sec).padStart(2, "0")}`;
-    bar.querySelector("#sb-time").textContent =
-      isVertical ? timeStr : `${timeStr} restantes`;
+    const timeEl = bar.querySelector("#sb-time");
+    if (timeEl) {
+      timeEl.textContent = isVertical ? timeStr : `${timeStr} restantes`;
+    }
 
     let color;
     if (pct > 50)      color = "#1a73e8";
@@ -94,7 +99,9 @@
     const bar = document.createElement("div");
     bar.id = "sb-footer";
 
-    if (barTheme === "dots") {
+    if (barTheme === "border") {
+      bar.innerHTML = '<div id="sb-track"><div id="sb-fill"></div></div>';
+    } else if (barTheme === "dots") {
       let dots = '<div id="sb-dots">';
       for (let i = 0; i < DOT_COUNT; i++) dots += '<span class="sb-dot"></span>';
       dots += "</div>";
@@ -147,6 +154,18 @@
       `display:flex!important;align-items:center!important;` +
       `padding:0 16px!important;gap:14px!important;` +
       `font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important;}`;
+
+    if (theme === "border") {
+      return (
+        `#sb-footer{position:fixed!important;${pos}` +
+          `z-index:2147483647!important;height:3px!important;` +
+          `background:transparent!important;border:none!important;` +
+          `box-shadow:none!important;padding:0!important;display:block!important;}` +
+        "#sb-track{width:100%!important;height:3px!important;background:transparent!important;}" +
+        "#sb-fill{height:3px!important;width:100%;background:#1a73e8;" +
+          "transition:width .25s linear,background .5s!important;}"
+      );
+    }
 
     if (theme === "minimal") {
       return [
@@ -223,6 +242,20 @@
       "cursor:pointer!important;font-size:18px!important;padding:2px 0!important;" +
       "line-height:1!important;flex-shrink:0!important;}" +
       "#sb-close:hover{color:#555!important;}";
+
+    if (theme === "border") {
+      return (
+        `#sb-footer{position:fixed!important;${pos}` +
+          `z-index:2147483647!important;width:3px!important;` +
+          `background:transparent!important;border:none!important;` +
+          `box-shadow:none!important;padding:0!important;display:block!important;}` +
+        "#sb-track{width:3px!important;height:100%!important;background:transparent!important;" +
+          "position:relative!important;}" +
+        "#sb-fill{position:absolute!important;bottom:0!important;left:0!important;right:0!important;" +
+          "height:100%;width:100%!important;background:#1a73e8;" +
+          "transition:height .25s linear,background .5s!important;}"
+      );
+    }
 
     if (theme === "minimal") {
       return [
