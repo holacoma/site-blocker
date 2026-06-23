@@ -1,0 +1,87 @@
+@keyframes sb-expiry-enter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+#sb-expiry-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  background: rgba(0,0,0,0.45) !important;
+  backdrop-filter: blur(10px) !important;
+  pointer-events: all !important;
+  user-select: none !important;
+  animation: sb-expiry-enter 1s ease-out forwards !important;
+}
+
+#sb-countdown {
+  font-size: clamp(3rem, 10vw, 7rem) !important;
+  font-family: monospace !important;
+  font-weight: 900 !important;
+  color: #fff !important;
+  line-height: 1 !important;
+  text-shadow: 0 2px 24px rgba(0,0,0,.6) !important;
+}
+
+#sb-expiry-msg {
+  font-size: clamp(.9rem, 2vw, 1.3rem) !important;
+  color: rgba(255,255,255,0.75) !important;
+  letter-spacing: .06em !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+#sb-minimize {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  color: rgba(255,255,255,0.55) !important;
+  transition: background .15s, color .15s !important;
+  flex-shrink: 0 !important;
+}
+#sb-minimize:hover {
+  background: rgba(255,255,255,0.15) !important;
+  color: #fff !important;
+}
+
+#sb-mini {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 2147483648 !important;
+  background: rgba(20,20,20,0.88) !important;
+  backdrop-filter: blur(8px) !important;
+  border-radius: 28px !important;
+  padding: 12px 24px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.45) !important;
+  user-select: none !important;
+}
+#sb-mini:hover { transform: scale(1.04) !important; }
+
+#sb-mini-count {
+  color: #fff !important;
+  font-size: 1.4rem !important;
+  font-family: monospace !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
