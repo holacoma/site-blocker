@@ -1,0 +1,65 @@
+body { background: #f0eef8; }
+
+#sb-bubbles {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  transform: scale(1.5);
+  transform-origin: 50% 50%;
+}
+
+#sb-b0, #sb-b1, #sb-b2, #sb-b3, #sb-b4 {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+}
+
+#sb-b0 { left:  8%; top:  8%; width: 580px; height: 580px; background: #b0d4ff; animation: sb-b0  8s   0s ease-in-out infinite; }
+#sb-b1 { left: 60%; top:  5%; width: 500px; height: 500px; background: #c4b0ff; animation: sb-b1 15s  -5s ease-in-out infinite; }
+#sb-b2 { left:  5%; top: 50%; width: 560px; height: 560px; background: #b0ffcc; animation: sb-b2 22s -10s ease-in-out infinite; }
+#sb-b3 { left: 65%; top: 55%; width: 460px; height: 460px; background: #ffb0cc; animation: sb-b3 12s  -3s ease-in-out infinite; }
+#sb-b4 { left: 38%; top: 30%; width: 420px; height: 420px; background: #ffd0b0; animation: sb-b4 28s -14s ease-in-out infinite; }
+
+@keyframes sb-b0 {
+  0%   { transform: translate(0, 0); }
+  33%  { transform: translate(25vw, 15vh); }
+  67%  { transform: translate(10vw, 35vh); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes sb-b1 {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-20vw, 20vh); }
+  50%  { transform: translate(-30vw,  5vh); }
+  75%  { transform: translate(-10vw, 30vh); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes sb-b2 {
+  0%   { transform: translate(0, 0); }
+  33%  { transform: translate(30vw, -20vh); }
+  67%  { transform: translate(15vw, -38vh); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes sb-b3 {
+  0%   { transform: translate(0, 0); }
+  33%  { transform: translate(-25vw, -15vh); }
+  67%  { transform: translate(-10vw, -32vh); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes sb-b4 {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate( 20vw, -10vh); }
+  40%  { transform: translate(  5vw, -28vh); }
+  60%  { transform: translate(-18vw, -12vh); }
+  80%  { transform: translate( -5vw,  10vh); }
+  100% { transform: translate(0, 0); }
+}
+
+html[data-darkmode="on"] body     { background: transparent; }
+html[data-darkmode="on"] #sb-bubbles { display: none; }
