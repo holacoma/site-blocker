@@ -1,0 +1,72 @@
+#sb-footer {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  display: block !important;
+}
+
+/* ── Horizontal ─────────────────────────────────────────────────────────── */
+
+#sb-footer[data-pos="bottom"] {
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 3px !important;
+}
+#sb-footer[data-pos="top"] {
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 3px !important;
+}
+
+#sb-footer[data-pos="bottom"] #sb-track,
+#sb-footer[data-pos="top"]    #sb-track {
+  width: 100% !important;
+  height: 3px !important;
+  background: transparent !important;
+}
+#sb-footer[data-pos="bottom"] #sb-fill,
+#sb-footer[data-pos="top"]    #sb-fill {
+  height: 3px !important;
+  width: 100%;
+  background: #1a73e8;
+  transition: width .25s linear, background .5s !important;
+}
+
+/* ── Vertical ───────────────────────────────────────────────────────────── */
+
+#sb-footer[data-pos="left"] {
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 3px !important;
+}
+#sb-footer[data-pos="right"] {
+  top: 0 !important;
+  bottom: 0 !important;
+  right: 0 !important;
+  width: 3px !important;
+}
+
+#sb-footer[data-pos="left"]  #sb-track,
+#sb-footer[data-pos="right"] #sb-track {
+  width: 3px !important;
+  height: 100% !important;
+  background: transparent !important;
+  position: relative !important;
+}
+#sb-footer[data-pos="left"]  #sb-fill,
+#sb-footer[data-pos="right"] #sb-fill {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 100%;
+  width: 100% !important;
+  background: #1a73e8;
+  transition: height .25s linear, background .5s !important;
+}

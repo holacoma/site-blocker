@@ -1,0 +1,93 @@
+@keyframes sb-expiry-enter {
+  from { transform: translateX(calc(100% + 24px)); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+#sb-expiry-overlay {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+  height: auto !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 4px !important;
+  background: rgba(255,255,255,0.97) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid #dde1e7 !important;
+  border-radius: 12px !important;
+  padding: 36px 20px 12px !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15) !important;
+  pointer-events: all !important;
+  user-select: none !important;
+  animation: sb-expiry-enter .8s ease-out forwards !important;
+}
+
+#sb-countdown {
+  font-size: 1.5rem !important;
+  font-family: monospace !important;
+  font-weight: 900 !important;
+  color: #d93025 !important;
+  line-height: 1 !important;
+}
+
+#sb-expiry-msg {
+  font-size: .75rem !important;
+  color: #666 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+#sb-minimize {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  color: rgba(0,0,0,0.3) !important;
+  transition: background .15s, color .15s !important;
+  flex-shrink: 0 !important;
+}
+#sb-minimize:hover {
+  background: rgba(0,0,0,0.08) !important;
+  color: rgba(0,0,0,0.65) !important;
+}
+
+#sb-mini {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 2147483648 !important;
+  background: rgba(20,20,20,0.88) !important;
+  backdrop-filter: blur(8px) !important;
+  border-radius: 28px !important;
+  padding: 12px 24px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.45) !important;
+  user-select: none !important;
+}
+#sb-mini:hover { transform: scale(1.04) !important; }
+
+#sb-mini-count {
+  color: #fff !important;
+  font-size: 1.4rem !important;
+  font-family: monospace !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
