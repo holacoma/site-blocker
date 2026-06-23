@@ -57,6 +57,9 @@ export function renderGeneral(themeLink) {
     langSelect.appendChild(opt);
   });
 
+  const langHint = document.createElement("small");
+  langHint.style.cssText = "font-size:11px;opacity:0.6;margin-top:3px;display:block";
+
   // ── Default timer input ──
   const defaultTimerInput = document.createElement("input");
   defaultTimerInput.type = "number";
@@ -72,7 +75,25 @@ export function renderGeneral(themeLink) {
   mount.appendChild(makeSettingRow("darkModeLabel", "darkModeSubtitle", darkToggle));
   mount.appendChild(makeSettingRow("themeLabel", "themeSubtitle", themeSelect));
   mount.appendChild(divider);
-  mount.appendChild(makeSettingRow("languageLabel", "languageSubtitle", langSelect));
+  const langRow = document.createElement("div");
+  langRow.className = "setting-row";
+  const langInfo = document.createElement("div");
+  langInfo.className = "setting-info";
+  const langTitle = document.createElement("div");
+  langTitle.className = "setting-title";
+  langTitle.textContent = t("languageLabel");
+  const langSubtitle = document.createElement("div");
+  langSubtitle.className = "setting-subtitle";
+  langSubtitle.textContent = t("languageSubtitle");
+  langInfo.appendChild(langTitle);
+  langInfo.appendChild(langSubtitle);
+  langInfo.appendChild(langHint);
+  const langCtrl = document.createElement("div");
+  langCtrl.className = "setting-control";
+  langCtrl.appendChild(langSelect);
+  langRow.appendChild(langInfo);
+  langRow.appendChild(langCtrl);
+  mount.appendChild(langRow);
 
   // Dark mode logic
   function setToggle(enabled) {
@@ -119,4 +140,10 @@ export function renderGeneral(themeLink) {
     const lang = langSelect.value;
     chrome.storage.local.set({ language: lang }, () => location.reload());
   });
+
+  // Always show the browser's detected language as info
+  const uiCode = chrome.i18n.getUILanguage().split("-")[0];
+  const match = SUPPORTED_LANGS.find((l) => l.code === uiCode) ?? SUPPORTED_LANGS.find((l) => l.code === "es");
+  langHint.textContent = t("languageDetectedHint") + " " + match.label;
+  langHint.style.display = "block";
 }

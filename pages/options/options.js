@@ -1,5 +1,5 @@
 import { BlockedSite } from "../../shared/BlockedSite.js";
-import { t, setLang } from "../../shared/i18n.js";
+import { t, initLang } from "../../shared/i18n.js";
 import { DaysFeature } from "./features/days.js";
 import { TimerFeature } from "./features/timer.js";
 import { ExceptionsFeature } from "./features/exceptions.js";
@@ -220,8 +220,7 @@ input.addEventListener("keydown", (e) => { if (e.key === "Enter") addSite(); });
 
 // ── Init — load language first, then render everything ───────────────────────
 
-chrome.storage.local.get({ language: "es" }, ({ language }) => {
-  setLang(language);
+initLang().then(() => {
   applyTranslations();
   renderGeneral(themeLink);
   renderAppearance();
