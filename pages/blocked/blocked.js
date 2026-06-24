@@ -28,7 +28,7 @@ chrome.storage.local.get(
     document.getElementById("block-title").textContent   = blockTitle;
     document.getElementById("block-message").textContent = blockMessage;
 
-    if (blockAnimation !== "none") win.classList.add("anim-" + blockAnimation);
+    runIntroAnimation(blockAnimation);
   }
 );
 
@@ -36,3 +36,54 @@ document.getElementById("back-btn").addEventListener("click", () => {
   if (history.length > 1) history.back();
   else window.location.href = "chrome://newtab";
 });
+
+function runIntroAnimation(blockAnimation) {
+  const overlay  = document.getElementById("bt-overlay");
+  const floatImg = document.getElementById("bt-float-logo");
+  const brandWin = document.querySelector(".brand-window");
+  const mainWin  = document.querySelector(".main-window");
+
+  if (!overlay || !floatImg) return;
+
+  // Hide brand-window until the floating logo "arrives" there
+  brandWin.style.opacity = "0";
+
+  // Short pause so the user sees the centered logo (continues from transition anim)
+  setTimeout(() => {
+    const brandLogo = brandWin.querySelector(".brand-logo");
+    const r     = brandLogo.getBoundingClientRect();
+    const dx    = (r.left + r.width  / 2) - window.innerWidth  / 2;
+    const dy    = (r.top  + r.height / 2) - window.innerHeight / 2;
+    const scale = Math.max(0.1, (r.width || 72) / 160);
+
+    // Lock the inline transform to a 3-function form so the browser can
+    // interpolate correctly from the initial centered state
+    floatImg.style.transform = "translate(-50%, -50%) translate(0, 0) scale(1)";
+
+    requestAnimationFrame(() => {
+      floatImg.style.transition =
+        "transform 0.7s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease 0.45s";
+      floatImg.style.transform =
+        `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(${scale})`;
+      floatImg.style.opacity = "0";
+
+      overlay.style.transition = "opacity 0.7s ease";
+      overlay.style.opacity    = "0";
+    });
+
+    // Reveal brand-window when the logo lands (~0.65s)
+    setTimeout(() => {
+      brandWin.style.transition = "opacity 0.2s ease";
+      brandWin.style.opacity    = "1";
+    }, 600);
+
+    // Animate main-window card in
+    setTimeout(() => {
+      if (blockAnimation !== "none") mainWin.classList.add("anim-" + blockAnimation);
+    }, 680);
+
+    // Cleanup
+    setTimeout(() => { overlay.remove(); floatImg.remove(); }, 950);
+
+  }, 400);
+}
