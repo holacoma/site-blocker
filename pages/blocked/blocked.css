@@ -27,10 +27,16 @@ body {
   from { opacity: 0; transform: scale(0.94); }
   to   { opacity: 1; transform: scale(1); }
 }
+@keyframes sb-brand-in {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 
-.main-window.anim-fade  { animation: sb-fade  0.55s ease-out; }
-.main-window.anim-slide { animation: sb-slide 0.6s  ease-out; }
-.main-window.anim-scale { animation: sb-scale 0.55s ease-out; }
+.brand-window { animation: sb-brand-in 0.5s ease-out both; }
+
+.main-window.anim-fade  { animation: sb-fade  0.55s ease-out 0.2s both; }
+.main-window.anim-slide { animation: sb-slide 0.6s  ease-out 0.2s both; }
+.main-window.anim-scale { animation: sb-scale 0.55s ease-out 0.2s both; }
 
 .block-site {
   font-family: monospace;

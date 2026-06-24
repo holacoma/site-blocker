@@ -238,55 +238,64 @@
   }
 
   function startBlockTransition(site) {
-    const style = document.createElement("style");
-    style.textContent = `
-      @keyframes sb-tr-bg { from { opacity:0 } to { opacity:1 } }
-      @keyframes sb-tr-in { from { opacity:0; transform:scale(0.93) } to { opacity:1; transform:scale(1) } }
-      #sb-block-tr {
-        position: fixed !important;
-        inset: 0 !important;
-        z-index: 2147483647 !important;
-        background: #0d0d14 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 22px !important;
-        opacity: 0 !important;
-        animation: sb-tr-bg 0.9s ease forwards !important;
-        pointer-events: all !important;
-      }
-      #sb-block-tr img {
-        width: 132px !important;
-        height: auto !important;
-        opacity: 0 !important;
-        animation: sb-tr-in 0.75s ease 0.8s forwards !important;
-      }
-      #sb-block-tr span {
-        color: rgba(255,255,255,0.38) !important;
-        font-family: system-ui, -apple-system, sans-serif !important;
-        font-size: 13px !important;
-        letter-spacing: 0.05em !important;
-        opacity: 0 !important;
-        animation: sb-tr-in 0.75s ease 1.3s forwards !important;
-      }
-    `;
-    document.head.appendChild(style);
+    // Remove expiry overlay so it doesn't block the transition
+    document.getElementById("sb-expiry-overlay")?.remove();
+    document.getElementById("sb-mini")?.remove();
 
     const overlay = document.createElement("div");
-    overlay.id = "sb-block-tr";
+    const img     = document.createElement("img");
+    const label   = document.createElement("span");
 
-    const img = document.createElement("img");
+    // Use setProperty (no <style> injection — CSP blocks it on many sites)
+    const S = (el, prop, val) => el.style.setProperty(prop, val, "important");
+
+    S(overlay, "position",        "fixed");
+    S(overlay, "top",             "0");
+    S(overlay, "left",            "0");
+    S(overlay, "right",           "0");
+    S(overlay, "bottom",          "0");
+    S(overlay, "z-index",         "2147483647");
+    S(overlay, "background",      "#0d0d14");
+    S(overlay, "display",         "flex");
+    S(overlay, "flex-direction",  "column");
+    S(overlay, "align-items",     "center");
+    S(overlay, "justify-content", "center");
+    S(overlay, "gap",             "20px");
+    S(overlay, "opacity",         "0");
+    S(overlay, "transition",      "opacity 0.8s ease");
+    S(overlay, "pointer-events",  "all");
+
     img.src = chrome.runtime.getURL("assets/BlockDoze_Original.svg");
     img.alt = "Blockdoze";
+    S(img, "width",      "160px");
+    S(img, "height",     "auto");
+    S(img, "display",    "block");
+    S(img, "opacity",    "0");
+    S(img, "transform",  "scale(0.88)");
+    S(img, "transition", "opacity 0.7s ease 0.4s, transform 0.7s ease 0.4s");
 
-    const label = document.createElement("span");
     label.textContent =
       chrome.i18n.getMessage("blockTransitionLabel") || "Sitio bloqueado";
+    S(label, "color",       "rgba(255,255,255,0.38)");
+    S(label, "font-family", "system-ui, -apple-system, sans-serif");
+    S(label, "font-size",   "13px");
+    S(label, "letter-spacing", "0.05em");
+    S(label, "opacity",     "0");
+    S(label, "transition",  "opacity 0.7s ease 0.9s");
 
     overlay.appendChild(img);
     overlay.appendChild(label);
     document.documentElement.appendChild(overlay);
+
+    // Double rAF ensures initial state is painted before transitioning
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        S(overlay, "opacity",   "1");
+        S(img,     "opacity",   "1");
+        S(img,     "transform", "scale(1)");
+        S(label,   "opacity",   "1");
+      });
+    });
 
     setTimeout(() => {
       chrome.runtime.sendMessage({ type: "REDIRECT_TO_BLOCKED", site });

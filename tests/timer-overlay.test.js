@@ -99,6 +99,7 @@ function buildOverlay(hostname = "reddit.com") {
     clearInterval: clearIntervalMock,
     setTimeout: vi.fn((fn) => { timeoutCallbacks.push(fn); return timeoutCallbacks.length; }),
     clearTimeout: vi.fn(),
+    requestAnimationFrame: vi.fn((fn) => { fn(); return 0; }),
     Promise, Date, Math, String, Number, Array, Object, Boolean, Symbol,
   });
 
