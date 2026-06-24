@@ -15,8 +15,6 @@ export const BAR_POSITIONS = [
 
 export const EXPIRY_THEMES = [
   { id: "toast",      name: "Toast",            nameEn: "Toast"       },
-  { id: "subtle",     name: "Sutil",            nameEn: "Subtle"      },
   { id: "blur",       name: "Desenfocado",      nameEn: "Blur"        },
-  { id: "default",    name: "Clásico",          nameEn: "Classic"     },
   { id: "fullscreen", name: "Pantalla completa", nameEn: "Full Screen" },
 ];
