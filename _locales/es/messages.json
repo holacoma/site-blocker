@@ -30,5 +30,7 @@
   "languageNote":           { "message": "El idioma sigue la configuración de Chrome." },
 
   "aboutVersion":           { "message": "Versión" },
-  "aboutDescription":       { "message": "Bloquea sitios web que distraen según días y tiempo de uso." }
+  "aboutDescription":       { "message": "Bloquea sitios web que distraen según días y tiempo de uso." },
+
+  "suggestionsLabel":       { "message": "Sugerencias" }
 }

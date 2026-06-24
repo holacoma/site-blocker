@@ -10,6 +10,8 @@ import { renderAppearance } from "./features/appearance.js";
 
 const FEATURES = [DaysFeature, TimerFeature, ExceptionsFeature];
 
+const SUGGESTED_DOMAINS = ["youtube.com", "facebook.com", "instagram.com", "tiktok.com", "reddit.com"];
+
 const input    = document.getElementById("site-input");
 const addBtn   = document.getElementById("add-btn");
 const siteList = document.getElementById("site-list");
@@ -66,7 +68,43 @@ function save(sites, callback) {
   chrome.storage.sync.set({ blockedSites: sites.map((s) => s.toJSON()) }, callback);
 }
 
+function renderSuggestions(sites) {
+  const wrap = document.getElementById("suggestions-wrap");
+  const blocked = new Set(sites.map((s) => s.domain));
+  const pending = SUGGESTED_DOMAINS.filter((d) => !blocked.has(d));
+
+  wrap.innerHTML = "";
+  if (pending.length === 0) return;
+
+  const label = document.createElement("p");
+  label.className = "suggestions-label";
+  label.textContent = t("suggestionsLabel");
+  wrap.appendChild(label);
+
+  const list = document.createElement("div");
+  list.className = "suggestions-list";
+
+  for (const domain of pending) {
+    const chip = document.createElement("button");
+    chip.className = "suggestion-chip";
+    chip.textContent = domain;
+    chip.addEventListener("click", () => {
+      chrome.storage.sync.get({ blockedSites: [], defaultTimerMinutes: 5 }, ({ blockedSites, defaultTimerMinutes }) => {
+        const current = blockedSites.map(BlockedSite.from);
+        if (!current.some((s) => s.domain === domain)) {
+          const updated = [...current, new BlockedSite({ domain, timerMinutes: defaultTimerMinutes })];
+          save(updated, load);
+        }
+      });
+    });
+    list.appendChild(chip);
+  }
+
+  wrap.appendChild(list);
+}
+
 function render(sites, timerState) {
+  renderSuggestions(sites);
   siteList.innerHTML = "";
 
   if (sites.length === 0) {
