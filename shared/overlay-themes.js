@@ -2,7 +2,6 @@ export const BAR_THEMES = [
   { id: "default",  name: "Clásico",     nameEn: "Classic"  },
   { id: "dots",     name: "Puntos",       nameEn: "Dots"     },
   { id: "segments", name: "Segmentos",    nameEn: "Segments" },
-  { id: "minimal",  name: "Minimalista",  nameEn: "Minimal"  },
   { id: "border",   name: "Borde",        nameEn: "Border"   },
 ];
 
@@ -15,8 +14,6 @@ export const BAR_POSITIONS = [
 
 export const EXPIRY_THEMES = [
   { id: "toast",      name: "Toast",            nameEn: "Toast"       },
-  { id: "subtle",     name: "Sutil",            nameEn: "Subtle"      },
   { id: "blur",       name: "Desenfocado",      nameEn: "Blur"        },
-  { id: "default",    name: "Clásico",          nameEn: "Classic"     },
   { id: "fullscreen", name: "Pantalla completa", nameEn: "Full Screen" },
 ];

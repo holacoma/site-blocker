@@ -22,7 +22,7 @@
     if (started || !expiry || Date.now() >= expiry) return;
     started = true;
     chrome.storage.local.get(
-      { overlayBarTheme: "default", overlayBarPosition: "bottom", overlayExpiryTheme: "default" },
+      { overlayBarTheme: "dots", overlayBarPosition: "bottom", overlayExpiryTheme: "blur" },
       ({ overlayBarTheme, overlayBarPosition, overlayExpiryTheme }) => {
         initNormalPhase(expiry, overlayBarTheme, overlayBarPosition, overlayExpiryTheme);
       }
@@ -71,10 +71,6 @@
         fill.style.setProperty(isVertical ? "height" : "width", pct + "%", "important");
         fill.style.setProperty("background", color, "important");
       },
-    },
-    minimal: {
-      template: "bar-fill",
-      update: fillUpdate,
     },
     segments: {
       template: "bar-fill",

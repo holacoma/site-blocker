@@ -63,7 +63,7 @@ export function renderAppearance(themeLink) {
   mount.appendChild(makeDivider());
 
   chrome.storage.local.get(
-    { [KEY_BAR]: "default", [KEY_POSITION]: "bottom", [KEY_EXPIRY]: "toast" },
+    { [KEY_BAR]: "dots", [KEY_POSITION]: "bottom", [KEY_EXPIRY]: "blur" },
     (prefs) => {
       mount.appendChild(
         buildSubsection({

@@ -73,17 +73,17 @@ function showTransitionPreview() {
   });
 
   function dismiss() {
+    clearTimeout(tid);
     overlay.classList.remove("btp-in");
     overlay.classList.add("btp-out");
-    setTimeout(() => overlay.remove(), 800);
+    setTimeout(() => {
+      overlay.remove();
+      chrome.tabs.create({ url: chrome.runtime.getURL("pages/blocked/blocked.html?site=preview") });
+    }, 800);
   }
 
   const tid = setTimeout(dismiss, 3500);
-
-  overlay.addEventListener("click", () => {
-    clearTimeout(tid);
-    dismiss();
-  });
+  overlay.addEventListener("click", dismiss);
 }
 
 function makeField(labelKey, descKey) {
