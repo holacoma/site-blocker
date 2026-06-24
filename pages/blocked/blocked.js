@@ -45,8 +45,9 @@ function runIntroAnimation(blockAnimation) {
 
   if (!overlay || !floatImg) return;
 
-  // Hide brand-window until the floating logo "arrives" there
+  // Keep both windows hidden until their cue — prevents double-appearance
   brandWin.style.opacity = "0";
+  mainWin.style.opacity  = "0";
 
   // Short pause so the user sees the centered logo (continues from transition anim)
   setTimeout(() => {
@@ -77,9 +78,13 @@ function runIntroAnimation(blockAnimation) {
       brandWin.style.opacity    = "1";
     }, 600);
 
-    // Animate main-window card in
+    // Animate main-window card in (CSS animation overrides the inline opacity:0)
     setTimeout(() => {
-      if (blockAnimation !== "none") mainWin.classList.add("anim-" + blockAnimation);
+      if (blockAnimation !== "none") {
+        mainWin.classList.add("anim-" + blockAnimation);
+      } else {
+        mainWin.style.opacity = "1";
+      }
     }, 680);
 
     // Cleanup
