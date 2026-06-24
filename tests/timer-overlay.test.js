@@ -71,7 +71,7 @@ function buildOverlay(hostname = "reddit.com") {
       },
       local: {
         get: vi.fn((_, cb) =>
-          cb({ overlayBarTheme: "default", overlayBarPosition: "bottom", overlayExpiryTheme: "default", darkMode: true })
+          cb({ overlayBarTheme: "default", overlayBarPosition: "bottom", overlayExpiryTheme: "blur", darkMode: true })
         ),
       },
     },
