@@ -254,13 +254,21 @@
 #suggestions-wrap { margin-bottom: 14px; }
 [data-theme="retro"] #suggestions-wrap { margin-bottom: 8px; }
 
+.suggestions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 6px;
+}
+[data-theme="retro"] .suggestions-header { margin: 0 0 4px; }
+
 .suggestions-label {
   font-size: 11px;
   font-weight: 600;
   color: #aaa;
   text-transform: uppercase;
   letter-spacing: .06em;
-  margin: 0 0 6px;
+  margin: 0;
 }
 [data-theme="retro"] .suggestions-label {
   font-family: "Pixelated MS Sans Serif", Arial;
@@ -269,8 +277,32 @@
   text-transform: none;
   letter-spacing: 0;
   color: #666;
-  margin: 0 0 4px;
+  margin: 0;
 }
+
+.suggestions-toggle {
+  background: none;
+  border: none;
+  box-shadow: none;
+  min-width: unset;
+  min-height: unset;
+  padding: 0;
+  margin: 0;
+  font-size: 11px;
+  color: #aaa;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.suggestions-toggle:hover { color: #555; }
+
+[data-theme="retro"] .suggestions-toggle {
+  font-family: "Pixelated MS Sans Serif", Arial;
+  font-size: 10px;
+  color: #666;
+  text-decoration: underline;
+}
+[data-theme="retro"] .suggestions-toggle:hover { color: #000; }
 
 .suggestions-list { display: flex; flex-wrap: wrap; gap: 6px; }
 [data-theme="retro"] .suggestions-list { gap: 4px; }

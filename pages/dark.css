@@ -44,6 +44,8 @@ html[data-darkmode="on"][data-theme="sober"] .add-row button:hover { background:
 html[data-darkmode="on"][data-theme="sober"] .add-label                            { color: #aeaeb2; }
 html[data-darkmode="on"][data-theme="sober"] .add-hint                             { color: #636366; }
 html[data-darkmode="on"][data-theme="sober"] .suggestions-label                    { color: #636366; }
+html[data-darkmode="on"][data-theme="sober"] .suggestions-toggle                   { color: #636366; }
+html[data-darkmode="on"][data-theme="sober"] .suggestions-toggle:hover             { color: #aeaeb2; }
 html[data-darkmode="on"][data-theme="sober"] .suggestion-chip                      { border-color: #3a3a3c; background: #2c2c2e; color: #aeaeb2; }
 html[data-darkmode="on"][data-theme="sober"] .suggestion-chip:hover                { border-color: #4da3ff; background: #1a2a4a; color: #4da3ff; }
 html[data-darkmode="on"][data-theme="sober"] .empty                                { color: #636366; }
