@@ -75,6 +75,7 @@ const MESSAGES = {
     suggestionsShow:        "Mostrar",
     savingIndicator:        "Guardando...",
     savedIndicator:         "Cambio guardado",
+    blockTransitionLabel:   "Sitio bloqueado",
   },
   en: {
     appTitle:               "Blockdoze",
@@ -152,6 +153,7 @@ const MESSAGES = {
     suggestionsShow:        "Show",
     savingIndicator:        "Saving...",
     savedIndicator:         "Changes saved",
+    blockTransitionLabel:   "Site blocked",
   },
 };
 

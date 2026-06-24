@@ -41,10 +41,7 @@ export function renderBlock() {
   const previewBtn = document.createElement("button");
   previewBtn.className = "block-preview-btn";
   previewBtn.textContent = t("blockPreviewButton");
-  previewBtn.addEventListener("click", () => {
-    const url = chrome.runtime.getURL("pages/blocked/blocked.html?site=example.com");
-    chrome.tabs.create({ url });
-  });
+  previewBtn.addEventListener("click", showTransitionPreview);
   mount.appendChild(previewBtn);
 
   function save() {
@@ -74,6 +71,41 @@ export function renderBlock() {
   titleInput.addEventListener("input", save);
   msgInput.addEventListener("input", save);
   animSelect.addEventListener("change", save);
+}
+
+function showTransitionPreview() {
+  const overlay = document.createElement("div");
+  overlay.className = "btp-overlay";
+
+  const logo = document.createElement("img");
+  logo.src = "../../assets/BlockDoze_Original.svg";
+  logo.alt = "Blockdoze";
+  logo.className = "btp-logo";
+
+  const label = document.createElement("span");
+  label.className = "btp-label";
+  label.textContent = t("blockTransitionLabel");
+
+  overlay.appendChild(logo);
+  overlay.appendChild(label);
+  document.body.appendChild(overlay);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => overlay.classList.add("btp-in"));
+  });
+
+  function dismiss() {
+    overlay.classList.remove("btp-in");
+    overlay.classList.add("btp-out");
+    setTimeout(() => overlay.remove(), 800);
+  }
+
+  const tid = setTimeout(dismiss, 3500);
+
+  overlay.addEventListener("click", () => {
+    clearTimeout(tid);
+    dismiss();
+  });
 }
 
 function makeField(labelKey, descKey) {

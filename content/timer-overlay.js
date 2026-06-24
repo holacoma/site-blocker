@@ -232,8 +232,79 @@
 
       if (msLeft <= 0) {
         clearInterval(ticker);
-        chrome.runtime.sendMessage({ type: "REDIRECT_TO_BLOCKED", site: location.hostname });
+        startBlockTransition(hostname);
       }
     }, 16);
   }
+
+  function startBlockTransition(site) {
+    chrome.storage.local.get({ darkMode: true }, ({ darkMode }) => {
+      document.getElementById("sb-expiry-overlay")?.remove();
+      document.getElementById("sb-mini")?.remove();
+
+      const isDark   = darkMode && matchMedia("(prefers-color-scheme: dark)").matches;
+      const bg       = isDark ? "#0d0d14" : "#f5f5f7";
+      const txtColor = isDark ? "rgba(255,255,255,0.38)" : "rgba(0,0,0,0.45)";
+
+      const overlay = document.createElement("div");
+      const img     = document.createElement("img");
+      const label   = document.createElement("span");
+
+      // Use setProperty (no <style> injection — CSP blocks it on many sites)
+      const S = (el, prop, val) => el.style.setProperty(prop, val, "important");
+
+      S(overlay, "position",        "fixed");
+      S(overlay, "top",             "0");
+      S(overlay, "left",            "0");
+      S(overlay, "right",           "0");
+      S(overlay, "bottom",          "0");
+      S(overlay, "z-index",         "2147483647");
+      S(overlay, "background",      bg);
+      S(overlay, "display",         "flex");
+      S(overlay, "flex-direction",  "column");
+      S(overlay, "align-items",     "center");
+      S(overlay, "justify-content", "center");
+      S(overlay, "gap",             "20px");
+      S(overlay, "opacity",         "0");
+      S(overlay, "transition",      "opacity 0.8s ease");
+      S(overlay, "pointer-events",  "all");
+
+      img.src = chrome.runtime.getURL("assets/BlockDoze_Original.svg");
+      img.alt = "Blockdoze";
+      S(img, "width",      "160px");
+      S(img, "height",     "auto");
+      S(img, "display",    "block");
+      S(img, "opacity",    "0");
+      S(img, "transform",  "scale(0.88)");
+      S(img, "transition", "opacity 0.7s ease 0.4s, transform 0.7s ease 0.4s");
+
+      label.textContent =
+        chrome.i18n.getMessage("blockTransitionLabel") || "Sitio bloqueado";
+      S(label, "color",          txtColor);
+      S(label, "font-family",    "system-ui, -apple-system, sans-serif");
+      S(label, "font-size",      "13px");
+      S(label, "letter-spacing", "0.05em");
+      S(label, "opacity",        "0");
+      S(label, "transition",     "opacity 0.7s ease 0.9s");
+
+      overlay.appendChild(img);
+      overlay.appendChild(label);
+      document.documentElement.appendChild(overlay);
+
+      // Double rAF ensures initial state is painted before transitioning
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          S(overlay, "opacity",   "1");
+          S(img,     "opacity",   "1");
+          S(img,     "transform", "scale(1)");
+          S(label,   "opacity",   "1");
+        });
+      });
+
+      setTimeout(() => {
+        chrome.runtime.sendMessage({ type: "REDIRECT_TO_BLOCKED", site });
+      }, 3500);
+    });
+  }
+
 })();

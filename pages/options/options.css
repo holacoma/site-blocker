@@ -1181,3 +1181,51 @@ html[data-darkmode="on"][data-theme="sober"] .toggle-btn[aria-pressed="true"] { 
   height: 8px;
 }
 
+/* ── Block transition preview overlay ── */
+
+.btp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0d0d14;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  cursor: pointer;
+}
+[data-darkmode="off"] .btp-overlay {
+  background: #f5f5f7;
+}
+.btp-overlay.btp-in  { opacity: 1; }
+.btp-overlay.btp-out { opacity: 0; }
+
+.btp-logo {
+  width: 160px;
+  height: auto;
+  display: block;
+  opacity: 0;
+  transform: scale(0.88);
+  transition: opacity 0.7s ease 0.4s, transform 0.7s ease 0.4s;
+}
+.btp-overlay.btp-in .btp-logo {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.btp-label {
+  color: rgba(255, 255, 255, 0.38);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.9s;
+}
+[data-darkmode="off"] .btp-label {
+  color: rgba(0, 0, 0, 0.45);
+}
+.btp-overlay.btp-in .btp-label { opacity: 1; }
+

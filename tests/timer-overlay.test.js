@@ -2,7 +2,7 @@
 // We execute it in a vm context with mocked browser globals so we can
 // verify the pause/resume state machine without a real browser.
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { readFileSync } from "fs";
 import { createContext, runInContext } from "vm";
 import { fileURLToPath } from "url";
@@ -42,6 +42,7 @@ function makeFakeEl() {
 function buildOverlay(hostname = "reddit.com") {
   const storageListeners = [];
   const sendMsgCalls = [];
+  const timeoutCallbacks = [];
   let nextIntervalId = 100;
   let activeIntervalId = null;
   let intervalWasCleared = false;
@@ -70,13 +71,16 @@ function buildOverlay(hostname = "reddit.com") {
       },
       local: {
         get: vi.fn((_, cb) =>
-          cb({ overlayBarTheme: "default", overlayBarPosition: "bottom", overlayExpiryTheme: "default" })
+          cb({ overlayBarTheme: "default", overlayBarPosition: "bottom", overlayExpiryTheme: "default", darkMode: true })
         ),
       },
     },
     runtime: {
       sendMessage: vi.fn((msg, cb) => sendMsgCalls.push({ msg, cb })),
       getURL: vi.fn((p) => `chrome-extension://fake/${p}`),
+    },
+    i18n: {
+      getMessage: vi.fn(() => "Site blocked"),
     },
   };
 
@@ -93,8 +97,10 @@ function buildOverlay(hostname = "reddit.com") {
     fetch: vi.fn(() => Promise.resolve({ text: () => Promise.resolve("<div></div>") })),
     setInterval: setIntervalMock,
     clearInterval: clearIntervalMock,
-    setTimeout: vi.fn(),
+    setTimeout: vi.fn((fn) => { timeoutCallbacks.push(fn); return timeoutCallbacks.length; }),
     clearTimeout: vi.fn(),
+    requestAnimationFrame: vi.fn((fn) => { fn(); return 0; }),
+    matchMedia: vi.fn(() => ({ matches: true })),
     Promise, Date, Math, String, Number, Array, Object, Boolean, Symbol,
   });
 
@@ -104,6 +110,7 @@ function buildOverlay(hostname = "reddit.com") {
     chrome,
     storageListeners,
     sendMsgCalls,
+    timeoutCallbacks,
     setIntervalMock,
     clearIntervalMock,
     intervalWasCleared: () => intervalWasCleared,
@@ -112,6 +119,8 @@ function buildOverlay(hostname = "reddit.com") {
 }
 
 describe("timer-overlay — pause/resume state machine", () => {
+  afterEach(() => { vi.restoreAllMocks(); });
+
   it("keeps the storage listener active after the overlay starts", async () => {
     const { storageListeners, sendMsgCalls, chrome } = buildOverlay();
 
@@ -160,5 +169,28 @@ describe("timer-overlay — pause/resume state machine", () => {
 
     // A second interval must be created for the resumed timer
     expect(setIntervalCallCount()).toBeGreaterThan(callsAfterStart);
+  });
+
+  it("sends REDIRECT_TO_BLOCKED (not chrome-extension://invalid/) after block transition", async () => {
+    const { sendMsgCalls, timeoutCallbacks, setIntervalMock } = buildOverlay("reddit.com");
+
+    const nowBase = Date.now();
+    sendMsgCalls.shift()?.cb({ expiry: nowBase + 60_000 });
+    await flush();
+
+    // Advance Date.now past expiry and fire the normal-phase bar interval
+    const dateSpy = vi.spyOn(Date, "now").mockReturnValue(nowBase + 120_000);
+    setIntervalMock.mock.calls[0][0](); // remaining <= 0 → startExpiryPhase()
+
+    // Advance Date.now past expiryEnd (set at nowBase+120_000+30_000) and fire expiry ticker
+    dateSpy.mockReturnValue(nowBase + 200_000);
+    setIntervalMock.mock.calls[1][0](); // msLeft = 0 → startBlockTransition("reddit.com")
+
+    // startBlockTransition queued a setTimeout; fire it now
+    expect(timeoutCallbacks).toHaveLength(1);
+    timeoutCallbacks[0]();
+
+    expect(sendMsgCalls).toHaveLength(1);
+    expect(sendMsgCalls[0].msg).toEqual({ type: "REDIRECT_TO_BLOCKED", site: "reddit.com" });
   });
 });

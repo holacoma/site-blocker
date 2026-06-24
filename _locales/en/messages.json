@@ -33,5 +33,6 @@
   "aboutVersion":           { "message": "Version" },
   "aboutDescription":       { "message": "Blocks distracting websites based on days and usage time." },
 
-  "suggestionsLabel":       { "message": "Suggestions" }
+  "suggestionsLabel":       { "message": "Suggestions" },
+  "blockTransitionLabel":   { "message": "Site blocked" }
 }

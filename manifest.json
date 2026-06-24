@@ -34,7 +34,8 @@
     "resources": [
       "content/themes/bar/*.css",
       "content/themes/expiry/*.css",
-      "content/templates/*.html"
+      "content/templates/*.html",
+      "assets/BlockDoze_Original.svg"
     ],
     "matches": ["<all_urls>"]
   }],
