@@ -6,18 +6,22 @@ const themeLink = document.getElementById("theme-css");
 const win = document.querySelector(".main-window");
 const darkMq = matchMedia("(prefers-color-scheme: dark)");
 
-let darkModeEnabled = true;
+let darkModeSetting = "device";
 
 function applyDarkMode() {
-  document.documentElement.dataset.darkmode = (darkModeEnabled && darkMq.matches) ? "on" : "off";
+  let on;
+  if (darkModeSetting === "dark")  on = true;
+  else if (darkModeSetting === "light") on = false;
+  else on = darkMq.matches; // "device"
+  document.documentElement.dataset.darkmode = on ? "on" : "off";
 }
 
 darkMq.addEventListener("change", applyDarkMode);
 
 chrome.storage.local.get(
-  { theme: "sober", blockTitle: "Sitio bloqueado", blockMessage: "Lo bloqueaste por una razón.", blockAnimation: "fade", darkMode: true },
+  { theme: "sober", blockTitle: "Sitio bloqueado", blockMessage: "Lo bloqueaste por una razón.", blockAnimation: "fade", darkMode: "device" },
   ({ theme, blockTitle, blockMessage, blockAnimation, darkMode }) => {
-    darkModeEnabled = darkMode;
+    darkModeSetting = typeof darkMode === "boolean" ? (darkMode ? "device" : "light") : darkMode;
     applyDarkMode();
 
     themeLink.href = theme === "retro"

@@ -93,17 +93,20 @@
 
   function onMqChange(e) { applyDarkMode(e.matches); }
 
-  function setDarkMode(enabled) {
+  function setDarkMode(setting) {
+    if (typeof setting === "boolean") setting = setting ? "device" : "light";
     darkMq.removeEventListener("change", onMqChange);
-    if (enabled) {
+    if (setting === "dark") {
+      applyDarkMode(true);
+    } else if (setting === "light") {
+      applyDarkMode(false);
+    } else {
       applyDarkMode(darkMq.matches);
       darkMq.addEventListener("change", onMqChange);
-    } else {
-      applyDarkMode(false);
     }
   }
 
-  chrome.storage.local.get({ darkMode: true }, ({ darkMode }) => setDarkMode(darkMode));
+  chrome.storage.local.get({ darkMode: "device" }, ({ darkMode }) => setDarkMode(darkMode));
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === "local" && "darkMode" in changes) {

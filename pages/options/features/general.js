@@ -31,11 +31,15 @@ function makeSettingRow(titleKey, subtitleKey, control) {
 export function renderGeneral(themeLink) {
   const mount = document.getElementById("general-mount");
 
-  // ── Dark mode toggle ──
-  const darkToggle = document.createElement("button");
-  darkToggle.type = "button";
-  darkToggle.id = "dark-mode-toggle";
-  darkToggle.className = "toggle-btn";
+  // ── Dark mode select ──
+  const darkSelect = document.createElement("select");
+  darkSelect.id = "dark-mode-select";
+  [["device", t("darkModeDevice")], ["light", t("darkModeLight")], ["dark", t("darkModeDark")]].forEach(([val, text]) => {
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = text;
+    darkSelect.appendChild(opt);
+  });
 
   // ── Theme select ──
   const themeSelect = document.createElement("select");
@@ -72,8 +76,26 @@ export function renderGeneral(themeLink) {
   const divider = document.createElement("hr");
   divider.className = "setting-divider";
 
+  // Dark mode row — built manually so the subtitle can be dynamic
+  const darkRow = document.createElement("div");
+  darkRow.className = "setting-row";
+  const darkInfo = document.createElement("div");
+  darkInfo.className = "setting-info";
+  const darkTitle = document.createElement("div");
+  darkTitle.className = "setting-title";
+  darkTitle.textContent = t("darkModeLabel");
+  const darkSubtitle = document.createElement("div");
+  darkSubtitle.className = "setting-subtitle";
+  darkInfo.appendChild(darkTitle);
+  darkInfo.appendChild(darkSubtitle);
+  const darkCtrl = document.createElement("div");
+  darkCtrl.className = "setting-control";
+  darkCtrl.appendChild(darkSelect);
+  darkRow.appendChild(darkInfo);
+  darkRow.appendChild(darkCtrl);
+
   mount.appendChild(makeSettingRow("defaultTimerLabel", "defaultTimerSubtitle", defaultTimerInput));
-  mount.appendChild(makeSettingRow("darkModeLabel", "darkModeSubtitle", darkToggle));
+  mount.appendChild(darkRow);
   mount.appendChild(makeSettingRow("themeLabel", "themeSubtitle", themeSelect));
   mount.appendChild(divider);
   const langRow = document.createElement("div");
@@ -97,17 +119,17 @@ export function renderGeneral(themeLink) {
   mount.appendChild(langRow);
 
   // Dark mode logic
-  function setToggle(enabled) {
-    darkToggle.setAttribute("aria-pressed", String(enabled));
-    darkToggle.textContent = enabled ? "On" : "Off";
-  }
+  const systemDark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const systemKey  = systemDark ? "darkModeSystemDark" : "darkModeSystemLight";
+  darkSubtitle.textContent = t("darkModeSystemLabel") + " " + t(systemKey);
 
-  chrome.storage.local.get({ darkMode: true }, ({ darkMode }) => setToggle(darkMode));
+  chrome.storage.local.get({ darkMode: "device" }, ({ darkMode }) => {
+    const setting = typeof darkMode === "boolean" ? (darkMode ? "device" : "light") : darkMode;
+    darkSelect.value = setting;
+  });
 
-  darkToggle.addEventListener("click", () => {
-    const newValue = darkToggle.getAttribute("aria-pressed") !== "true";
-    chrome.storage.local.set({ darkMode: newValue });
-    setToggle(newValue);
+  darkSelect.addEventListener("change", () => {
+    chrome.storage.local.set({ darkMode: darkSelect.value });
     flashSave();
   });
 
