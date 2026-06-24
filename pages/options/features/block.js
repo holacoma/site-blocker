@@ -1,13 +1,6 @@
 import { t } from "../../../shared/i18n.js";
 import { flashSave } from "../save-indicator.js";
 
-const ANIMATIONS = [
-  { value: "fade",  labelKey: "blockAnimFade"  },
-  { value: "slide", labelKey: "blockAnimSlide" },
-  { value: "scale", labelKey: "blockAnimScale" },
-  { value: "none",  labelKey: "blockAnimNone"  },
-];
-
 export function renderBlock() {
   const mount = document.getElementById("block-mount");
 
@@ -25,18 +18,6 @@ export function renderBlock() {
   msgInput.rows = 3;
   mount.appendChild(msgInput);
 
-  // Animation
-  mount.appendChild(makeField("blockAnimationLabel", "blockAnimationDesc"));
-  const animSelect = document.createElement("select");
-  animSelect.className = "block-anim-select";
-  ANIMATIONS.forEach(({ value, labelKey }) => {
-    const opt = document.createElement("option");
-    opt.value = value;
-    opt.textContent = t(labelKey);
-    animSelect.appendChild(opt);
-  });
-  mount.appendChild(animSelect);
-
   // Preview button
   const previewBtn = document.createElement("button");
   previewBtn.className = "block-preview-btn";
@@ -46,19 +27,17 @@ export function renderBlock() {
 
   function save() {
     chrome.storage.local.set({
-      blockTitle:     titleInput.value,
-      blockMessage:   msgInput.value,
-      blockAnimation: animSelect.value,
+      blockTitle:   titleInput.value,
+      blockMessage: msgInput.value,
     }, flashSave);
   }
 
-  chrome.storage.local.get({ blockTitle: null, blockMessage: null, blockAnimation: "fade" }, (stored) => {
+  chrome.storage.local.get({ blockTitle: null, blockMessage: null }, (stored) => {
     const defaultTitle   = t("blockTitlePlaceholder");
     const defaultMessage = t("blockMessagePlaceholder");
 
     titleInput.value = stored.blockTitle   ?? defaultTitle;
     msgInput.value   = stored.blockMessage ?? defaultMessage;
-    animSelect.value = stored.blockAnimation;
 
     if (stored.blockTitle === null || stored.blockMessage === null) {
       chrome.storage.local.set({
@@ -70,7 +49,6 @@ export function renderBlock() {
 
   titleInput.addEventListener("input", save);
   msgInput.addEventListener("input", save);
-  animSelect.addEventListener("change", save);
 }
 
 function showTransitionPreview() {
