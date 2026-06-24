@@ -33,5 +33,6 @@
   "aboutVersion":           { "message": "Versión" },
   "aboutDescription":       { "message": "Bloquea sitios web que distraen según días y tiempo de uso." },
 
-  "suggestionsLabel":       { "message": "Sugerencias" }
+  "suggestionsLabel":       { "message": "Sugerencias" },
+  "blockTransitionLabel":   { "message": "Sitio bloqueado" }
 }

@@ -232,8 +232,67 @@
 
       if (msLeft <= 0) {
         clearInterval(ticker);
-        chrome.runtime.sendMessage({ type: "REDIRECT_TO_BLOCKED", site: location.hostname });
+        startBlockTransition(hostname);
       }
     }, 16);
   }
+
+  function startBlockTransition(site) {
+    const blockedUrl =
+      chrome.runtime.getURL("pages/blocked/blocked.html") +
+      "?site=" + encodeURIComponent(site);
+
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes sb-tr-bg { from { opacity:0 } to { opacity:1 } }
+      @keyframes sb-tr-in { from { opacity:0; transform:scale(0.93) } to { opacity:1; transform:scale(1) } }
+      #sb-block-tr {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 2147483647 !important;
+        background: #0d0d14 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 22px !important;
+        opacity: 0 !important;
+        animation: sb-tr-bg 0.9s ease forwards !important;
+        pointer-events: all !important;
+      }
+      #sb-block-tr img {
+        width: 132px !important;
+        height: auto !important;
+        opacity: 0 !important;
+        animation: sb-tr-in 0.75s ease 0.8s forwards !important;
+      }
+      #sb-block-tr span {
+        color: rgba(255,255,255,0.38) !important;
+        font-family: system-ui, -apple-system, sans-serif !important;
+        font-size: 13px !important;
+        letter-spacing: 0.05em !important;
+        opacity: 0 !important;
+        animation: sb-tr-in 0.75s ease 1.3s forwards !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    const overlay = document.createElement("div");
+    overlay.id = "sb-block-tr";
+
+    const img = document.createElement("img");
+    img.src = chrome.runtime.getURL("assets/BlockDoze_Original.svg");
+    img.alt = "Blockdoze";
+
+    const label = document.createElement("span");
+    label.textContent =
+      chrome.i18n.getMessage("blockTransitionLabel") || "Sitio bloqueado";
+
+    overlay.appendChild(img);
+    overlay.appendChild(label);
+    document.documentElement.appendChild(overlay);
+
+    setTimeout(() => window.location.replace(blockedUrl), 3500);
+  }
+
 })();
