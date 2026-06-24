@@ -2,7 +2,6 @@ export const BAR_THEMES = [
   { id: "default",  name: "Clásico",     nameEn: "Classic"  },
   { id: "dots",     name: "Puntos",       nameEn: "Dots"     },
   { id: "segments", name: "Segmentos",    nameEn: "Segments" },
-  { id: "minimal",  name: "Minimalista",  nameEn: "Minimal"  },
   { id: "border",   name: "Borde",        nameEn: "Border"   },
 ];
 

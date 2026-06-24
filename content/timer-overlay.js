@@ -72,10 +72,6 @@
         fill.style.setProperty("background", color, "important");
       },
     },
-    minimal: {
-      template: "bar-fill",
-      update: fillUpdate,
-    },
     segments: {
       template: "bar-fill",
       update: fillUpdate,
