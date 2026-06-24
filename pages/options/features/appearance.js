@@ -1,4 +1,5 @@
 import { t } from "../../../shared/i18n.js";
+import { flashSave } from "../save-indicator.js";
 import { BAR_THEMES, BAR_POSITIONS, EXPIRY_THEMES } from "../../../shared/overlay-themes.js";
 
 const KEY_BAR      = "overlayBarTheme";
@@ -81,7 +82,7 @@ function buildSubsection({ titleKey, subtitleKey, themes, selectedId, storageKey
   wrap.appendChild(previewWrap);
 
   sel.addEventListener("change", () => {
-    chrome.storage.local.set({ [storageKey]: sel.value });
+    chrome.storage.local.set({ [storageKey]: sel.value }, flashSave);
     const next = buildPreview(sel.value);
     previewWrap.replaceChild(next, currentPreview);
     currentPreview = next;

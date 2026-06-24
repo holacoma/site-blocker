@@ -1,4 +1,5 @@
 import { t, setLang, getLang, SUPPORTED_LANGS } from "../../../shared/i18n.js";
+import { flashSave } from "../save-indicator.js";
 
 function makeSettingRow(titleKey, subtitleKey, control) {
   const row = document.createElement("div");
@@ -107,6 +108,7 @@ export function renderGeneral(themeLink) {
     const newValue = darkToggle.getAttribute("aria-pressed") !== "true";
     chrome.storage.local.set({ darkMode: newValue });
     setToggle(newValue);
+    flashSave();
   });
 
   // Theme logic
@@ -122,6 +124,7 @@ export function renderGeneral(themeLink) {
     const theme = themeSelect.value;
     chrome.storage.local.set({ theme });
     applyTheme(theme);
+    flashSave();
   });
 
   // Default timer logic
@@ -133,6 +136,7 @@ export function renderGeneral(themeLink) {
     const val = Math.max(0, parseInt(defaultTimerInput.value, 10) || 0);
     defaultTimerInput.value = val;
     chrome.storage.sync.set({ defaultTimerMinutes: val });
+    flashSave();
   });
 
   // Language logic — reload so all strings re-render with the new lang

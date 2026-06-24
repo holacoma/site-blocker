@@ -73,6 +73,8 @@ const MESSAGES = {
     suggestionsLabel:       "Sugerencias",
     suggestionsHide:        "Ocultar",
     suggestionsShow:        "Mostrar",
+    savingIndicator:        "Guardando...",
+    savedIndicator:         "Cambio guardado",
   },
   en: {
     appTitle:               "Blockdoze",
@@ -148,6 +150,8 @@ const MESSAGES = {
     suggestionsLabel:       "Suggestions",
     suggestionsHide:        "Hide",
     suggestionsShow:        "Show",
+    savingIndicator:        "Saving...",
+    savedIndicator:         "Changes saved",
   },
 };
 
