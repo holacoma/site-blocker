@@ -19,8 +19,8 @@ function applyDarkMode() {
 darkMq.addEventListener("change", applyDarkMode);
 
 chrome.storage.local.get(
-  { theme: "sober", blockTitle: "Sitio bloqueado", blockMessage: "Lo bloqueaste por una razón.", darkMode: "device" },
-  ({ theme, blockTitle, blockMessage, darkMode }) => {
+  { theme: "sober", blockTitle: "Sitio bloqueado", blockMessage: "Lo bloqueaste por una razón.", blockAnimation: "fade", darkMode: "device" },
+  ({ theme, blockTitle, blockMessage, blockAnimation, darkMode }) => {
     darkModeSetting = typeof darkMode === "boolean" ? (darkMode ? "device" : "light") : darkMode;
     applyDarkMode();
 
@@ -32,7 +32,7 @@ chrome.storage.local.get(
     document.getElementById("block-title").textContent   = blockTitle;
     document.getElementById("block-message").textContent = blockMessage;
 
-    runIntroAnimation("slide");
+    runIntroAnimation(blockAnimation);
   }
 );
 
