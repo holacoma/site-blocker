@@ -6,8 +6,61 @@ const KEY_BAR      = "overlayBarTheme";
 const KEY_POSITION = "overlayBarPosition";
 const KEY_EXPIRY   = "overlayExpiryTheme";
 
-export function renderAppearance() {
+export function renderAppearance(themeLink) {
   const mount = document.getElementById("appearance-mount");
+
+  // ── Dark mode ──
+  const darkSelect = document.createElement("select");
+  darkSelect.id = "dark-mode-select";
+  [["device", t("darkModeDevice")], ["light", t("darkModeLight")], ["dark", t("darkModeDark")]].forEach(([val, text]) => {
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = text;
+    darkSelect.appendChild(opt);
+  });
+
+  const systemDark = matchMedia("(prefers-color-scheme: dark)").matches;
+  mount.appendChild(makeRow(
+    t("darkModeLabel"),
+    t("darkModeSystemLabel") + " " + t(systemDark ? "darkModeSystemDark" : "darkModeSystemLight"),
+    darkSelect
+  ));
+
+  chrome.storage.local.get({ darkMode: "device" }, ({ darkMode }) => {
+    const setting = typeof darkMode === "boolean" ? (darkMode ? "device" : "light") : darkMode;
+    darkSelect.value = setting;
+  });
+  darkSelect.addEventListener("change", () => {
+    chrome.storage.local.set({ darkMode: darkSelect.value });
+    flashSave();
+  });
+
+  mount.appendChild(makeDivider());
+
+  // ── Theme ──
+  const themeSelect = document.createElement("select");
+  themeSelect.id = "theme-select";
+  [["retro", t("themeRetro")], ["sober", t("themeSober")]].forEach(([val, text]) => {
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = text;
+    themeSelect.appendChild(opt);
+  });
+  mount.appendChild(makeRow(t("themeLabel"), t("themeSubtitle"), themeSelect));
+
+  function applyTheme(theme) {
+    themeLink.href = theme === "sober" ? "theme-sober.css" : "theme-retro.css";
+    document.documentElement.dataset.theme = theme;
+    themeSelect.value = theme;
+  }
+  chrome.storage.local.get({ theme: "sober" }, ({ theme }) => applyTheme(theme));
+  themeSelect.addEventListener("change", () => {
+    applyTheme(themeSelect.value);
+    chrome.storage.local.set({ theme: themeSelect.value });
+    flashSave();
+  });
+
+  mount.appendChild(makeDivider());
 
   chrome.storage.local.get(
     { [KEY_BAR]: "default", [KEY_POSITION]: "bottom", [KEY_EXPIRY]: "toast" },
@@ -91,31 +144,29 @@ function buildSubsection({ titleKey, subtitleKey, themes, selectedId, storageKey
   return wrap;
 }
 
-function makeSettingRow(titleKey, subtitleKey, control) {
+function makeRow(title, subtitle, control) {
   const row = document.createElement("div");
   row.className = "setting-row";
-
   const info = document.createElement("div");
   info.className = "setting-info";
-
-  const title = document.createElement("div");
-  title.className = "setting-title";
-  title.textContent = t(titleKey);
-
-  const subtitle = document.createElement("div");
-  subtitle.className = "setting-subtitle";
-  subtitle.textContent = t(subtitleKey);
-
-  info.appendChild(title);
-  info.appendChild(subtitle);
-
+  const titleEl = document.createElement("div");
+  titleEl.className = "setting-title";
+  titleEl.textContent = title;
+  const subtitleEl = document.createElement("div");
+  subtitleEl.className = "setting-subtitle";
+  subtitleEl.textContent = subtitle;
+  info.appendChild(titleEl);
+  info.appendChild(subtitleEl);
   const ctrl = document.createElement("div");
   ctrl.className = "setting-control";
   ctrl.appendChild(control);
-
   row.appendChild(info);
   row.appendChild(ctrl);
   return row;
+}
+
+function makeSettingRow(titleKey, subtitleKey, control) {
+  return makeRow(t(titleKey), t(subtitleKey), control);
 }
 
 const PV_DOT_COUNT = 12;
