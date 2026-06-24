@@ -249,6 +249,103 @@
 /* Retro: elementos separados como lo haría 98.css */
 [data-theme="retro"] .add-row { display: flex; gap: 4px; align-items: center; margin-bottom: 0; }
 
+/* ── Suggestions ── */
+
+#suggestions-wrap { margin-bottom: 14px; }
+[data-theme="retro"] #suggestions-wrap { margin-bottom: 8px; }
+
+.suggestions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 6px;
+}
+[data-theme="retro"] .suggestions-header { margin: 0 0 4px; }
+
+.suggestions-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: 0;
+}
+[data-theme="retro"] .suggestions-label {
+  font-family: "Pixelated MS Sans Serif", Arial;
+  font-size: 10px;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #666;
+  margin: 0;
+}
+
+.suggestions-toggle {
+  background: none;
+  border: none;
+  box-shadow: none;
+  min-width: unset;
+  min-height: unset;
+  padding: 0;
+  margin: 0;
+  font-size: 11px;
+  color: #aaa;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.suggestions-toggle:hover { color: #555; }
+
+[data-theme="retro"] .suggestions-toggle {
+  font-family: "Pixelated MS Sans Serif", Arial;
+  font-size: 10px;
+  color: #666;
+  text-decoration: underline;
+}
+[data-theme="retro"] .suggestions-toggle:hover { color: #000; }
+
+.suggestions-list { display: flex; flex-wrap: wrap; gap: 6px; }
+[data-theme="retro"] .suggestions-list { gap: 4px; }
+
+.suggestion-chip {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1.5px solid #dde1e7;
+  background: #f8f9fa;
+  color: #444;
+  font-size: 12px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  cursor: pointer;
+  box-shadow: none;
+  min-width: unset;
+  min-height: unset;
+  margin: 0;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.suggestion-chip:hover {
+  border-color: #4285f4;
+  background: #e8f0fe;
+  color: #1a73e8;
+}
+
+[data-theme="retro"] .suggestion-chip {
+  padding: 1px 8px;
+  border-radius: 0;
+  border: none;
+  background: silver;
+  color: #222;
+  font-size: 11px;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  min-height: 21px;
+  transition: none;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+[data-theme="retro"] .suggestion-chip:hover { background: silver; color: #222; }
+[data-theme="retro"] .suggestion-chip:active {
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
+              inset -2px -2px #dfdfdf, inset 2px 2px grey;
+}
+
 /* ── Site list ── */
 
 #site-list {

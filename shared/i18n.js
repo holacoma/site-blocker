@@ -70,6 +70,9 @@ const MESSAGES = {
     aboutDonateTitle:       "Apoyá el proyecto",
     aboutDonateDesc:        "Si la extensión te fue útil, podés invitarme un café. Ayuda a mantenerla activa y mejorarla.",
     aboutDonateButton:      "Invitarme un café en Ko-fi",
+    suggestionsLabel:       "Sugerencias",
+    suggestionsHide:        "Ocultar",
+    suggestionsShow:        "Mostrar",
   },
   en: {
     appTitle:               "Blockdoze",
@@ -142,6 +145,9 @@ const MESSAGES = {
     aboutDonateTitle:       "Support the project",
     aboutDonateDesc:        "If the extension has been useful to you, you can buy me a coffee. It helps keep it alive and growing.",
     aboutDonateButton:      "Buy me a coffee on Ko-fi",
+    suggestionsLabel:       "Suggestions",
+    suggestionsHide:        "Hide",
+    suggestionsShow:        "Show",
   },
 };
 

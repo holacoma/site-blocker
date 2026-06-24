@@ -30,5 +30,7 @@
   "languageNote":           { "message": "Language follows Chrome's language setting." },
 
   "aboutVersion":           { "message": "Version" },
-  "aboutDescription":       { "message": "Blocks distracting websites based on days and usage time." }
+  "aboutDescription":       { "message": "Blocks distracting websites based on days and usage time." },
+
+  "suggestionsLabel":       { "message": "Suggestions" }
 }

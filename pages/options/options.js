@@ -10,6 +10,8 @@ import { renderAppearance } from "./features/appearance.js";
 
 const FEATURES = [DaysFeature, TimerFeature, ExceptionsFeature];
 
+const SUGGESTED_DOMAINS = ["youtube.com", "facebook.com", "instagram.com", "tiktok.com", "reddit.com"];
+
 const input    = document.getElementById("site-input");
 const addBtn   = document.getElementById("add-btn");
 const siteList = document.getElementById("site-list");
@@ -51,11 +53,12 @@ function load() {
   const today = new Date().toISOString().slice(0, 10);
   chrome.storage.sync.get({ blockedSites: [] }, ({ blockedSites }) => {
     chrome.storage.local.get(
-      { activeTimers: {}, usedTimerDates: {}, pausedTimers: {} },
-      ({ activeTimers, usedTimerDates, pausedTimers }) => {
+      { activeTimers: {}, usedTimerDates: {}, pausedTimers: {}, suggestionsCollapsed: false },
+      ({ activeTimers, usedTimerDates, pausedTimers, suggestionsCollapsed }) => {
         render(
           blockedSites.map(BlockedSite.from),
-          { activeTimers, usedTimerDates, pausedTimers, today }
+          { activeTimers, usedTimerDates, pausedTimers, today },
+          suggestionsCollapsed
         );
       }
     );
@@ -66,7 +69,63 @@ function save(sites, callback) {
   chrome.storage.sync.set({ blockedSites: sites.map((s) => s.toJSON()) }, callback);
 }
 
-function render(sites, timerState) {
+function renderSuggestions(sites, collapsed) {
+  const wrap = document.getElementById("suggestions-wrap");
+  const blocked = new Set(sites.map((s) => s.domain));
+  const pending = SUGGESTED_DOMAINS.filter((d) => !blocked.has(d));
+
+  wrap.innerHTML = "";
+  if (pending.length === 0) return;
+
+  const header = document.createElement("div");
+  header.className = "suggestions-header";
+
+  const label = document.createElement("p");
+  label.className = "suggestions-label";
+  label.textContent = t("suggestionsLabel");
+
+  const toggleBtn = document.createElement("button");
+  toggleBtn.className = "suggestions-toggle";
+  toggleBtn.textContent = collapsed ? t("suggestionsShow") : t("suggestionsHide");
+  toggleBtn.addEventListener("click", () => {
+    const next = !collapsed;
+    chrome.storage.local.set({ suggestionsCollapsed: next }, () => {
+      chrome.storage.sync.get({ blockedSites: [] }, ({ blockedSites }) => {
+        renderSuggestions(blockedSites.map(BlockedSite.from), next);
+      });
+    });
+  });
+
+  header.appendChild(label);
+  header.appendChild(toggleBtn);
+  wrap.appendChild(header);
+
+  if (!collapsed) {
+    const list = document.createElement("div");
+    list.className = "suggestions-list";
+
+    for (const domain of pending) {
+      const chip = document.createElement("button");
+      chip.className = "suggestion-chip";
+      chip.textContent = domain;
+      chip.addEventListener("click", () => {
+        chrome.storage.sync.get({ blockedSites: [], defaultTimerMinutes: 5 }, ({ blockedSites, defaultTimerMinutes }) => {
+          const current = blockedSites.map(BlockedSite.from);
+          if (!current.some((s) => s.domain === domain)) {
+            const updated = [...current, new BlockedSite({ domain, timerMinutes: defaultTimerMinutes })];
+            save(updated, load);
+          }
+        });
+      });
+      list.appendChild(chip);
+    }
+
+    wrap.appendChild(list);
+  }
+}
+
+function render(sites, timerState, suggestionsCollapsed) {
+  renderSuggestions(sites, suggestionsCollapsed);
   siteList.innerHTML = "";
 
   if (sites.length === 0) {
