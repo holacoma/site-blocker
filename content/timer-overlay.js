@@ -238,11 +238,13 @@
   }
 
   function startBlockTransition(site) {
-    chrome.storage.local.get({ darkMode: true }, ({ darkMode }) => {
+    chrome.storage.local.get({ darkMode: "device" }, ({ darkMode }) => {
       document.getElementById("sb-expiry-overlay")?.remove();
       document.getElementById("sb-mini")?.remove();
 
-      const isDark   = darkMode && matchMedia("(prefers-color-scheme: dark)").matches;
+      const setting  = typeof darkMode === "boolean" ? (darkMode ? "device" : "light") : darkMode;
+      const sysDark  = matchMedia("(prefers-color-scheme: dark)").matches;
+      const isDark   = setting === "dark" || (setting !== "light" && sysDark);
       const bg       = isDark ? "#0d0d14" : "#f5f5f7";
       const txtColor = isDark ? "rgba(255,255,255,0.38)" : "rgba(0,0,0,0.45)";
 
