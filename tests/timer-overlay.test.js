@@ -30,6 +30,7 @@ function makeFakeEl() {
       style: { setProperty: vi.fn() },
       textContent: "",
       addEventListener: vi.fn(),
+      appendChild: vi.fn(() => makeFakeEl()),
     })),
     querySelectorAll: vi.fn(() => { const a = []; a.forEach = Array.prototype.forEach.bind(a); return a; }),
     content: { cloneNode: vi.fn(() => makeFakeEl()) },
@@ -71,7 +72,7 @@ function buildOverlay(hostname = "reddit.com") {
       },
       local: {
         get: vi.fn((_, cb) =>
-          cb({ overlayBarTheme: "default", overlayBarPosition: "bottom", overlayExpiryTheme: "blur", darkMode: true })
+          cb({ overlayBarTheme: "dots", overlayBarPosition: "bottom", overlayExpiryTheme: "blur", darkMode: true })
         ),
       },
     },
