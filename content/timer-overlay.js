@@ -238,10 +238,6 @@
   }
 
   function startBlockTransition(site) {
-    const blockedUrl =
-      chrome.runtime.getURL("pages/blocked/blocked.html") +
-      "?site=" + encodeURIComponent(site);
-
     const style = document.createElement("style");
     style.textContent = `
       @keyframes sb-tr-bg { from { opacity:0 } to { opacity:1 } }
@@ -292,7 +288,9 @@
     overlay.appendChild(label);
     document.documentElement.appendChild(overlay);
 
-    setTimeout(() => window.location.replace(blockedUrl), 3500);
+    setTimeout(() => {
+      chrome.runtime.sendMessage({ type: "REDIRECT_TO_BLOCKED", site });
+    }, 3500);
   }
 
 })();
