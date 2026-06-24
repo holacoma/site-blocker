@@ -1130,3 +1130,54 @@ html[data-darkmode="on"][data-theme="sober"] .toggle-btn[aria-pressed="true"] { 
 .pv-expiry[data-theme="blur"]       .pv-expiry-msg { color: rgba(255,255,255,.75); }
 .pv-expiry[data-theme="fullscreen"] .pv-expiry-msg { color: rgba(255,255,255,.5); letter-spacing: .1em; }
 
+/* ── Save indicator ── */
+
+.save-ind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  margin-left: 10px;
+  transition: opacity 0.4s;
+}
+
+.save-ind--spin { opacity: 1; color: #888; }
+
+.save-ind--spin::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(0,0,0,0.12);
+  border-top-color: #1a73e8;
+  border-radius: 50%;
+  animation: save-spin 0.55s linear infinite;
+  flex-shrink: 0;
+}
+
+.save-ind--ok  { opacity: 1; color: #34a853; }
+.save-ind--fade { opacity: 0; color: #34a853; }
+
+@keyframes save-spin {
+  to { transform: rotate(360deg); }
+}
+
+[data-theme="retro"] .save-ind {
+  font-family: "Pixelated MS Sans Serif", Arial;
+  font-size: 10px;
+  color: lime;
+  text-shadow: 0 0 2px #000;
+  margin-left: 6px;
+}
+
+[data-theme="retro"] .save-ind--spin::before {
+  border-color: #888;
+  border-top-color: #fff;
+  width: 8px;
+  height: 8px;
+}
+

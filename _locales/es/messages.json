@@ -1,5 +1,6 @@
 {
   "appTitle":               { "message": "Blockdoze" },
+  "savedIndicator":         { "message": "Guardado" },
   "navDomainBlock":         { "message": "Bloqueo de Dominios" },
   "navAppearance":          { "message": "Apariencia" },
   "navAbout":               { "message": "Acerca de" },

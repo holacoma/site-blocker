@@ -1,5 +1,6 @@
 {
   "appTitle":               { "message": "Blockdoze" },
+  "savedIndicator":         { "message": "Saved" },
   "navDomainBlock":         { "message": "Domain Block" },
   "navAppearance":          { "message": "Appearance" },
   "navAbout":               { "message": "About" },

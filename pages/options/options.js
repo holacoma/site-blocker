@@ -7,6 +7,7 @@ import { renderGeneral } from "./features/general.js";
 import { renderAbout } from "./features/about.js";
 import { renderBlock } from "./features/block.js";
 import { renderAppearance } from "./features/appearance.js";
+import { flashSave } from "./save-indicator.js";
 
 const FEATURES = [DaysFeature, TimerFeature, ExceptionsFeature];
 
@@ -66,7 +67,10 @@ function load() {
 }
 
 function save(sites, callback) {
-  chrome.storage.sync.set({ blockedSites: sites.map((s) => s.toJSON()) }, callback);
+  chrome.storage.sync.set({ blockedSites: sites.map((s) => s.toJSON()) }, () => {
+    flashSave();
+    if (callback) callback();
+  });
 }
 
 function renderSuggestions(sites, collapsed) {

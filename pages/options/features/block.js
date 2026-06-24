@@ -1,4 +1,5 @@
 import { t } from "../../../shared/i18n.js";
+import { flashSave } from "../save-indicator.js";
 
 const ANIMATIONS = [
   { value: "fade",  labelKey: "blockAnimFade"  },
@@ -51,7 +52,7 @@ export function renderBlock() {
       blockTitle:     titleInput.value,
       blockMessage:   msgInput.value,
       blockAnimation: animSelect.value,
-    });
+    }, flashSave);
   }
 
   chrome.storage.local.get({ blockTitle: null, blockMessage: null, blockAnimation: "fade" }, (stored) => {
