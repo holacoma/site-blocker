@@ -71,7 +71,7 @@ function buildOverlay(hostname = "reddit.com") {
       },
       local: {
         get: vi.fn((_, cb) =>
-          cb({ overlayBarTheme: "default", overlayBarPosition: "bottom", overlayExpiryTheme: "default" })
+          cb({ overlayBarTheme: "default", overlayBarPosition: "bottom", overlayExpiryTheme: "default", darkMode: true })
         ),
       },
     },
@@ -100,6 +100,7 @@ function buildOverlay(hostname = "reddit.com") {
     setTimeout: vi.fn((fn) => { timeoutCallbacks.push(fn); return timeoutCallbacks.length; }),
     clearTimeout: vi.fn(),
     requestAnimationFrame: vi.fn((fn) => { fn(); return 0; }),
+    matchMedia: vi.fn(() => ({ matches: true })),
     Promise, Date, Math, String, Number, Array, Object, Boolean, Symbol,
   });
 

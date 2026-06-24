@@ -1197,6 +1197,9 @@ html[data-darkmode="on"][data-theme="sober"] .toggle-btn[aria-pressed="true"] { 
   transition: opacity 0.8s ease;
   cursor: pointer;
 }
+[data-darkmode="off"] .btp-overlay {
+  background: #f5f5f7;
+}
 .btp-overlay.btp-in  { opacity: 1; }
 .btp-overlay.btp-out { opacity: 0; }
 
@@ -1220,6 +1223,9 @@ html[data-darkmode="on"][data-theme="sober"] .toggle-btn[aria-pressed="true"] { 
   letter-spacing: 0.05em;
   opacity: 0;
   transition: opacity 0.7s ease 0.9s;
+}
+[data-darkmode="off"] .btp-label {
+  color: rgba(0, 0, 0, 0.45);
 }
 .btp-overlay.btp-in .btp-label { opacity: 1; }
 
