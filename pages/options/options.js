@@ -285,8 +285,8 @@ input.addEventListener("keydown", (e) => { if (e.key === "Enter") addSite(); });
 
 initLang().then(() => {
   applyTranslations();
-  renderGeneral(themeLink);
-  renderAppearance();
+  renderGeneral();
+  renderAppearance(themeLink);
   renderBlock();
   renderAbout();
   load();
