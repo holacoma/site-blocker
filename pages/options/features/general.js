@@ -1,6 +1,11 @@
-import { t, setLang, getLang, SUPPORTED_LANGS } from "../../../shared/i18n.js";
+import { t, getLang, SUPPORTED_LANGS } from "../../../shared/i18n.js";
 import { flashSave } from "../save-indicator.js";
 
+/**
+ * @param {string} titleKey
+ * @param {string} subtitleKey
+ * @param {HTMLElement} control
+ */
 function makeSettingRow(titleKey, subtitleKey, control) {
   const row = document.createElement("div");
   row.className = "setting-row";
@@ -29,10 +34,10 @@ function makeSettingRow(titleKey, subtitleKey, control) {
 }
 
 export function renderGeneral() {
-  const mount = document.getElementById("general-mount");
+  const mount = /** @type {HTMLElement} */ (document.getElementById("general-mount"));
 
   // ── Language select ──
-  const langSelect = document.createElement("select");
+  const langSelect = /** @type {HTMLSelectElement} */ (document.createElement("select"));
   langSelect.id = "lang-select";
   SUPPORTED_LANGS.forEach(({ code, label }) => {
     const opt = document.createElement("option");
@@ -46,7 +51,7 @@ export function renderGeneral() {
   langHint.style.cssText = "font-size:11px;opacity:0.6;margin-top:3px;display:block";
 
   // ── Default timer input ──
-  const defaultTimerInput = document.createElement("input");
+  const defaultTimerInput = /** @type {HTMLInputElement} */ (document.createElement("input"));
   defaultTimerInput.type = "number";
   defaultTimerInput.id = "default-timer-input";
   defaultTimerInput.min = "0";
@@ -79,13 +84,13 @@ export function renderGeneral() {
   mount.appendChild(langRow);
 
   // Default timer logic
-  chrome.storage.sync.get({ defaultTimerMinutes: 5 }, ({ defaultTimerMinutes }) => {
-    defaultTimerInput.value = defaultTimerMinutes;
+  chrome.storage.sync.get({ defaultTimerMinutes: 5 }, (data) => {
+    defaultTimerInput.value = String(data.defaultTimerMinutes);
   });
 
   defaultTimerInput.addEventListener("change", () => {
     const val = Math.max(0, parseInt(defaultTimerInput.value, 10) || 0);
-    defaultTimerInput.value = val;
+    defaultTimerInput.value = String(val);
     chrome.storage.sync.set({ defaultTimerMinutes: val });
     flashSave();
   });

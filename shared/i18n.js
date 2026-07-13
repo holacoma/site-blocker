@@ -167,6 +167,7 @@ const MESSAGES = {
   },
 };
 
+/** @type {keyof typeof MESSAGES} */
 let _lang = "es";
 
 export const SUPPORTED_LANGS = [
@@ -174,6 +175,7 @@ export const SUPPORTED_LANGS = [
   { code: "en", label: "English" },
 ];
 
+/** @param {keyof typeof MESSAGES} lang */
 export function setLang(lang) {
   if (MESSAGES[lang]) _lang = lang;
 }
@@ -182,18 +184,24 @@ export function getLang() {
   return _lang;
 }
 
-export const t = (key) => MESSAGES[_lang]?.[key] ?? MESSAGES["es"]?.[key] ?? key;
+/** @param {string} key */
+export const t = (key) => {
+  const messages = /** @type {{[key: string]: string}} */ (MESSAGES[_lang]);
+  const fallback = /** @type {{[key: string]: string}} */ (MESSAGES["es"]);
+  return messages?.[key] ?? fallback?.[key] ?? key;
+};
 
 const SUPPORTED_CODES = SUPPORTED_LANGS.map((l) => l.code);
 
 export async function initLang() {
-  const { language } = await chrome.storage.local.get("language");
+  const data = await chrome.storage.local.get("language");
+  const language = /** @type {string | undefined} */ (data.language);
   if (language && SUPPORTED_CODES.includes(language)) {
-    _lang = language;
+    _lang = /** @type {keyof typeof MESSAGES} */ (language);
     return;
   }
 
   const uiLang = chrome.i18n.getUILanguage();
   const code = uiLang.split("-")[0];
-  _lang = SUPPORTED_CODES.includes(code) ? code : "es";
+  _lang = /** @type {keyof typeof MESSAGES} */ (SUPPORTED_CODES.includes(code) ? code : "es");
 }

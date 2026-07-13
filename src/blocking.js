@@ -1,3 +1,10 @@
+/** @typedef {import('../shared/BlockedSite.js').BlockedSite} BlockedSite */
+/** @typedef {import('../shared/types.js').ActiveTimers} ActiveTimers */
+
+/**
+ * @param {string} url
+ * @param {string[]} [userExceptions]
+ */
 export function isAlwaysAllowed(url, userExceptions = []) {
   try {
     const parsed = new URL(url);
@@ -19,6 +26,11 @@ export function isAlwaysAllowed(url, userExceptions = []) {
   }
 }
 
+/**
+ * @param {string} url
+ * @param {BlockedSite[]} sites
+ * @param {ActiveTimers} [activeTimers]
+ */
 export function isBlocked(url, sites, activeTimers = {}) {
   try {
     const hostname = new URL(url).hostname.replace(/^www\./, "");

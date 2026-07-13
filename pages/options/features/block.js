@@ -2,18 +2,18 @@ import { t } from "../../../shared/i18n.js";
 import { flashSave } from "../save-indicator.js";
 
 export function renderBlock() {
-  const mount = document.getElementById("block-mount");
+  const mount = /** @type {HTMLElement} */ (document.getElementById("block-mount"));
 
   // Title
   mount.appendChild(makeField("blockTitleLabel", "blockTitleDesc"));
-  const titleInput = document.createElement("input");
+  const titleInput = /** @type {HTMLInputElement} */ (document.createElement("input"));
   titleInput.type = "text";
   titleInput.className = "block-text-input";
   mount.appendChild(titleInput);
 
   // Message
   mount.appendChild(makeField("blockMessageLabel", "blockMessageDesc"));
-  const msgInput = document.createElement("textarea");
+  const msgInput = /** @type {HTMLTextAreaElement} */ (document.createElement("textarea"));
   msgInput.className = "block-text-area";
   msgInput.rows = 3;
   mount.appendChild(msgInput);
@@ -32,7 +32,8 @@ export function renderBlock() {
     }, flashSave);
   }
 
-  chrome.storage.local.get({ blockTitle: null, blockMessage: null }, (stored) => {
+  chrome.storage.local.get({ blockTitle: null, blockMessage: null }, (data) => {
+    const stored = /** @type {{blockTitle: string | null, blockMessage: string | null}} */ (data);
     const defaultTitle   = t("blockTitlePlaceholder");
     const defaultMessage = t("blockMessagePlaceholder");
 
@@ -86,6 +87,10 @@ function showTransitionPreview() {
   overlay.addEventListener("click", dismiss);
 }
 
+/**
+ * @param {string} labelKey
+ * @param {string} descKey
+ */
 function makeField(labelKey, descKey) {
   const wrap = document.createElement("div");
   wrap.className = "block-field-header";

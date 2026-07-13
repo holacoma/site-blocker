@@ -9,25 +9,33 @@ import { renderBlock } from "./features/block.js";
 import { renderAppearance } from "./features/appearance.js";
 import { flashSave } from "./save-indicator.js";
 
+/** @typedef {import('../../shared/types.js').ActiveTimers} ActiveTimers */
+/** @typedef {import('../../shared/types.js').PausedTimers} PausedTimers */
+/** @typedef {import('../../shared/types.js').UsedTimerDates} UsedTimerDates */
+/** @typedef {import('../../shared/types.js').FeatureContext} FeatureContext */
+/** @typedef {{activeTimers: ActiveTimers, pausedTimers: PausedTimers, usedTimerDates: UsedTimerDates, today: string}} TimerState */
+
 const FEATURES = [DaysFeature, TimerFeature, ExceptionsFeature];
 
 const SUGGESTED_DOMAINS = ["youtube.com", "facebook.com", "instagram.com", "tiktok.com", "reddit.com"];
 
-const input    = document.getElementById("site-input");
-const addBtn   = document.getElementById("add-btn");
-const siteList = document.getElementById("site-list");
-const themeLink = document.getElementById("theme-css");
+const input    = /** @type {HTMLInputElement} */ (document.getElementById("site-input"));
+const addBtn   = /** @type {HTMLElement} */ (document.getElementById("add-btn"));
+const siteList = /** @type {HTMLElement} */ (document.getElementById("site-list"));
+const themeLink = /** @type {HTMLLinkElement} */ (document.getElementById("theme-css"));
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 
 function applyTranslations() {
   document.querySelectorAll("[data-i18n]").forEach((el) => {
-    const msg = t(el.dataset.i18n);
-    if (msg) el.textContent = msg;
+    const target = /** @type {HTMLElement} */ (el);
+    const msg = t(target.dataset.i18n ?? "");
+    if (msg) target.textContent = msg;
   });
   document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
-    const msg = t(el.dataset.i18nPlaceholder);
-    if (msg) el.placeholder = msg;
+    const target = /** @type {HTMLInputElement} */ (el);
+    const msg = t(target.dataset.i18nPlaceholder ?? "");
+    if (msg) target.placeholder = msg;
   });
   const title = t("appTitle");
   if (title) document.title = title;
@@ -35,9 +43,10 @@ function applyTranslations() {
 
 // ── Sidebar navigation ───────────────────────────────────────────────────────
 
+/** @param {string} id */
 function showSection(id) {
   document.querySelectorAll(".nav-item").forEach((b) =>
-    b.classList.toggle("active", b.dataset.section === id)
+    b.classList.toggle("active", /** @type {HTMLElement} */ (b).dataset.section === id)
   );
   document.querySelectorAll(".section").forEach((s) =>
     s.classList.toggle("active", s.id === "section-" + id)
@@ -45,27 +54,35 @@ function showSection(id) {
 }
 
 document.querySelectorAll(".nav-item").forEach((btn) => {
-  btn.addEventListener("click", () => showSection(btn.dataset.section));
+  btn.addEventListener("click", () => showSection(/** @type {HTMLElement} */ (btn).dataset.section ?? ""));
 });
 
 // ── Sites ────────────────────────────────────────────────────────────────────
 
 function load() {
   const today = new Date().toISOString().slice(0, 10);
-  chrome.storage.sync.get({ blockedSites: [] }, ({ blockedSites }) => {
+  chrome.storage.sync.get({ blockedSites: [] }, (syncData) => {
+    const blockedSites = /** @type {import('../../shared/types.js').RawBlockedSite[]} */ (syncData.blockedSites);
     chrome.storage.local.get(
       { activeTimers: {}, usedTimerDates: {}, pausedTimers: {}, suggestionsCollapsed: false },
-      ({ activeTimers, usedTimerDates, pausedTimers, suggestionsCollapsed }) => {
+      (data) => {
+        const activeTimers = /** @type {ActiveTimers} */ (data.activeTimers);
+        const usedTimerDates = /** @type {UsedTimerDates} */ (data.usedTimerDates);
+        const pausedTimers = /** @type {PausedTimers} */ (data.pausedTimers);
         render(
           blockedSites.map(BlockedSite.from),
           { activeTimers, usedTimerDates, pausedTimers, today },
-          suggestionsCollapsed
+          /** @type {boolean} */ (data.suggestionsCollapsed)
         );
       }
     );
   });
 }
 
+/**
+ * @param {BlockedSite[]} sites
+ * @param {() => void} [callback]
+ */
 function save(sites, callback) {
   chrome.storage.sync.set({ blockedSites: sites.map((s) => s.toJSON()) }, () => {
     flashSave();
@@ -73,8 +90,12 @@ function save(sites, callback) {
   });
 }
 
+/**
+ * @param {BlockedSite[]} sites
+ * @param {boolean} collapsed
+ */
 function renderSuggestions(sites, collapsed) {
-  const wrap = document.getElementById("suggestions-wrap");
+  const wrap = /** @type {HTMLElement} */ (document.getElementById("suggestions-wrap"));
   const blocked = new Set(sites.map((s) => s.domain));
   const pending = SUGGESTED_DOMAINS.filter((d) => !blocked.has(d));
 
@@ -94,7 +115,8 @@ function renderSuggestions(sites, collapsed) {
   toggleBtn.addEventListener("click", () => {
     const next = !collapsed;
     chrome.storage.local.set({ suggestionsCollapsed: next }, () => {
-      chrome.storage.sync.get({ blockedSites: [] }, ({ blockedSites }) => {
+      chrome.storage.sync.get({ blockedSites: [] }, (data) => {
+        const blockedSites = /** @type {import('../../shared/types.js').RawBlockedSite[]} */ (data.blockedSites);
         renderSuggestions(blockedSites.map(BlockedSite.from), next);
       });
     });
@@ -113,7 +135,9 @@ function renderSuggestions(sites, collapsed) {
       chip.className = "suggestion-chip";
       chip.textContent = domain;
       chip.addEventListener("click", () => {
-        chrome.storage.sync.get({ blockedSites: [], defaultTimerMinutes: 5 }, ({ blockedSites, defaultTimerMinutes }) => {
+        chrome.storage.sync.get({ blockedSites: [], defaultTimerMinutes: 5 }, (data) => {
+          const blockedSites = /** @type {import('../../shared/types.js').RawBlockedSite[]} */ (data.blockedSites);
+          const defaultTimerMinutes = /** @type {number} */ (data.defaultTimerMinutes);
           const current = blockedSites.map(BlockedSite.from);
           if (!current.some((s) => s.domain === domain)) {
             const updated = [...current, new BlockedSite({ domain, timerMinutes: defaultTimerMinutes })];
@@ -128,6 +152,11 @@ function renderSuggestions(sites, collapsed) {
   }
 }
 
+/**
+ * @param {BlockedSite[]} sites
+ * @param {TimerState} timerState
+ * @param {boolean} suggestionsCollapsed
+ */
 function render(sites, timerState, suggestionsCollapsed) {
   renderSuggestions(sites, suggestionsCollapsed);
   siteList.innerHTML = "";
@@ -143,6 +172,7 @@ function render(sites, timerState, suggestionsCollapsed) {
       pausedTimers:   timerState.pausedTimers,
       usedTimerDates: timerState.usedTimerDates,
       today:          timerState.today,
+      /** @param {BlockedSite} updatedSite */
       onUpdate(updatedSite) {
         const updated = sites.map((s) =>
           s.domain === updatedSite.domain ? updatedSite : s
@@ -156,6 +186,11 @@ function render(sites, timerState, suggestionsCollapsed) {
   });
 }
 
+/**
+ * @param {BlockedSite} site
+ * @param {BlockedSite[]} allSites
+ * @param {FeatureContext} ctx
+ */
 function createCard(site, allSites, ctx) {
   const li = document.createElement("li");
 
@@ -178,6 +213,7 @@ function createCard(site, allSites, ctx) {
   delBtn.textContent = "🗑";
 
   let delPending = false;
+  /** @type {ReturnType<typeof setTimeout> | null} */
   let delTimer = null;
 
   function resetDel() {
@@ -212,7 +248,9 @@ function createCard(site, allSites, ctx) {
   tabRow.className = "tab-row";
   body.appendChild(tabRow);
 
+  /** @type {HTMLButtonElement[]} */
   const tabBtns = [];
+  /** @type {HTMLElement[]} */
   const panels  = [];
 
   for (const feature of FEATURES) {
@@ -261,7 +299,9 @@ function addSite() {
     .replace(/\/.*$/, "");
   if (!raw) return;
 
-  chrome.storage.sync.get({ blockedSites: [], defaultTimerMinutes: 5 }, ({ blockedSites, defaultTimerMinutes }) => {
+  chrome.storage.sync.get({ blockedSites: [], defaultTimerMinutes: 5 }, (data) => {
+    const blockedSites = /** @type {import('../../shared/types.js').RawBlockedSite[]} */ (data.blockedSites);
+    const defaultTimerMinutes = /** @type {number} */ (data.defaultTimerMinutes);
     const sites = blockedSites.map(BlockedSite.from);
     if (!sites.some((s) => s.domain === raw)) {
       const updated = [...sites, new BlockedSite({ domain: raw, timerMinutes: defaultTimerMinutes })];
@@ -271,6 +311,10 @@ function addSite() {
   });
 }
 
+/**
+ * @param {string} domain
+ * @param {BlockedSite[]} currentSites
+ */
 function removeSite(domain, currentSites) {
   const updated = currentSites.filter((s) => s.domain !== domain);
   save(updated, () => {

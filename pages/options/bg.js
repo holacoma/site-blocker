@@ -1,13 +1,23 @@
 (function () {
+  /** @type {number | null} */
   let rafId = null;
 
-  const canvas = document.getElementById("bg-canvas");
-  const ctx    = canvas.getContext("2d");
+  const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("bg-canvas"));
+  const ctx    = /** @type {CanvasRenderingContext2D} */ (canvas.getContext("2d"));
 
   const SUITS  = ["♠", "♥", "♦", "♣"];
   const COLORS = ["#ff1493", "#c084fc", "#f472b6", "#a855f7", "#ec4899"];
   const COUNT  = 35;
 
+  /**
+   * @typedef {{
+   *   x: number, y: number, size: number, suit: string, color: string,
+   *   alpha: number, angle: number, vx: number, vy: number, vr: number,
+   *   daDir: number, daSpd: number,
+   * }} Particle
+   */
+
+  /** @type {Particle[]} */
   let particles = [];
 
   function resize() {
@@ -85,16 +95,19 @@
 
   const darkMq = matchMedia("(prefers-color-scheme: dark)");
 
+  /** @param {boolean} isDark */
   function applyDarkMode(isDark) {
     document.documentElement.dataset.darkmode = isDark ? "on" : "off";
     if (isDark) startCanvas();
     else        stopCanvas();
   }
 
+  /** @param {MediaQueryListEvent} e */
   function onMqChange(e) { applyDarkMode(e.matches); }
 
-  function setDarkMode(setting) {
-    if (typeof setting === "boolean") setting = setting ? "device" : "light";
+  /** @param {string | boolean} rawSetting */
+  function setDarkMode(rawSetting) {
+    const setting = typeof rawSetting === "boolean" ? (rawSetting ? "device" : "light") : rawSetting;
     darkMq.removeEventListener("change", onMqChange);
     if (setting === "dark") {
       applyDarkMode(true);
@@ -106,11 +119,13 @@
     }
   }
 
-  chrome.storage.local.get({ darkMode: "device" }, ({ darkMode }) => setDarkMode(darkMode));
+  chrome.storage.local.get({ darkMode: "device" }, (data) =>
+    setDarkMode(/** @type {string | boolean} */ (data.darkMode))
+  );
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === "local" && "darkMode" in changes) {
-      setDarkMode(changes.darkMode.newValue);
+      setDarkMode(/** @type {string | boolean} */ (changes.darkMode.newValue));
     }
   });
 })();

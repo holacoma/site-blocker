@@ -3,7 +3,9 @@
   if (!hostname) return;
 
   let started = false;
+  /** @type {number | null} */
   let activeInterval = null;
+  /** @type {HTMLElement | null} */
   let activeBar = null;
 
   function stopNormalPhase() {
@@ -18,17 +20,27 @@
     started = false;
   }
 
+  /** @param {number} [expiry] */
   function startIfValid(expiry) {
     if (started || !expiry || Date.now() >= expiry) return;
     started = true;
     chrome.storage.local.get(
       { overlayBarTheme: "dots", overlayBarPosition: "bottom", overlayExpiryTheme: "blur" },
-      ({ overlayBarTheme, overlayBarPosition, overlayExpiryTheme }) => {
-        initNormalPhase(expiry, overlayBarTheme, overlayBarPosition, overlayExpiryTheme);
+      (data) => {
+        initNormalPhase(
+          expiry,
+          /** @type {string} */ (data.overlayBarTheme),
+          /** @type {string} */ (data.overlayBarPosition),
+          /** @type {string} */ (data.overlayExpiryTheme)
+        );
       }
     );
   }
 
+  /**
+   * @param {{[key: string]: chrome.storage.StorageChange}} changes
+   * @param {string} area
+   */
   function onStorageChange(changes, area) {
     if (area !== "local" || !changes.activeTimers) return;
     chrome.runtime.sendMessage({ type: "GET_TIMER_STATE", domain: hostname }, (resp) => {
@@ -49,13 +61,14 @@
 
   // ── Template preload ──────────────────────────────────────────────────────
 
+  /** @type {{[name: string]: HTMLTemplateElement}} */
   const TEMPLATES = {};
   const templatesReady = (() => {
     const names = ["bar-fill", "bar-dots", "bar-border", "expiry-overlay", "expiry-mini"];
     return Promise.all(names.map(async (name) => {
       const url = chrome.runtime.getURL(`content/templates/${name}.html`);
       const html = await fetch(url).then((r) => r.text());
-      const tpl = document.createElement("template");
+      const tpl = /** @type {HTMLTemplateElement} */ (document.createElement("template"));
       tpl.innerHTML = html.trim();
       TEMPLATES[name] = tpl;
     }));
@@ -63,11 +76,20 @@
 
   // ── Bar theme registry ────────────────────────────────────────────────────
 
+  /**
+   * @typedef {{
+   *   template: string,
+   *   update: (bar: HTMLElement, pct: number, color: string, isVertical?: boolean) => void,
+   *   populateTemplate?: (bar: HTMLElement) => void,
+   * }} BarRenderer
+   */
+
+  /** @type {{[theme: string]: BarRenderer}} */
   const BAR_RENDERERS = {
     border: {
       template: "bar-border",
       update(bar, pct, color, isVertical) {
-        const fill = bar.querySelector("#sb-fill");
+        const fill = /** @type {HTMLElement} */ (bar.querySelector("#sb-fill"));
         fill.style.setProperty(isVertical ? "height" : "width", pct + "%", "important");
         fill.style.setProperty("background", color, "important");
       },
@@ -79,7 +101,7 @@
     dots: {
       template: "bar-dots",
       populateTemplate(bar) {
-        const container = bar.querySelector("#sb-dots");
+        const container = /** @type {HTMLElement} */ (bar.querySelector("#sb-dots"));
         for (let i = 0; i < DOT_COUNT; i++) {
           container.appendChild(document.createElement("span")).className = "sb-dot";
         }
@@ -88,7 +110,9 @@
         const dots = bar.querySelectorAll(".sb-dot");
         const active = Math.ceil(dots.length * pct / 100);
         dots.forEach((dot, i) => {
-          dot.style.setProperty("background", i < active ? color : "rgba(0,0,0,0.1)", "important");
+          /** @type {HTMLElement} */ (dot).style.setProperty(
+            "background", i < active ? color : "rgba(0,0,0,0.1)", "important"
+          );
         });
       },
     },
@@ -98,14 +122,24 @@
     },
   };
 
+  /**
+   * @param {HTMLElement} bar
+   * @param {number} pct
+   * @param {string} color
+   * @param {boolean} [isVertical]
+   */
   function fillUpdate(bar, pct, color, isVertical) {
-    const fill = bar.querySelector("#sb-fill");
+    const fill = /** @type {HTMLElement} */ (bar.querySelector("#sb-fill"));
     fill.style.setProperty(isVertical ? "height" : "width", pct + "%", "important");
     fill.style.setProperty("background", color, "important");
   }
 
   // ── CSS injection ─────────────────────────────────────────────────────────
 
+  /**
+   * @param {string} id
+   * @param {string} path
+   */
   function injectCSS(id, path) {
     if (document.getElementById(id)) return;
     const link = document.createElement("link");
@@ -117,6 +151,12 @@
 
   // ── Core functions ────────────────────────────────────────────────────────
 
+  /**
+   * @param {number} expiry
+   * @param {string} barTheme
+   * @param {string} barPosition
+   * @param {string} expiryTheme
+   */
   async function initNormalPhase(expiry, barTheme, barPosition, expiryTheme) {
     await templatesReady;
 
@@ -155,6 +195,10 @@
     activeInterval = interval;
   }
 
+  /**
+   * @param {string} barTheme
+   * @param {string} barPosition
+   */
   function createFooterBar(barTheme, barPosition) {
     const renderer = BAR_RENDERERS[barTheme] ?? BAR_RENDERERS.default;
     const bar = document.createElement("div");
@@ -165,6 +209,13 @@
     return bar;
   }
 
+  /**
+   * @param {HTMLElement} bar
+   * @param {string} barTheme
+   * @param {string} barPosition
+   * @param {number} remaining
+   * @param {number} totalMs
+   */
   function updateBar(bar, barTheme, barPosition, remaining, totalMs) {
     const pct = Math.max(0, remaining / totalMs) * 100;
     const isVertical = barPosition === "left" || barPosition === "right";
@@ -233,6 +284,7 @@
     }, 16);
   }
 
+  /** @param {string} site */
   function startBlockTransition(site) {
     chrome.storage.local.get({ darkMode: "device" }, ({ darkMode }) => {
       document.getElementById("sb-expiry-overlay")?.remove();
@@ -249,6 +301,7 @@
       const label   = document.createElement("span");
 
       // Use setProperty (no <style> injection — CSP blocks it on many sites)
+      /** @type {(el: HTMLElement, prop: string, val: string) => void} */
       const S = (el, prop, val) => el.style.setProperty(prop, val, "important");
 
       S(overlay, "position",        "fixed");

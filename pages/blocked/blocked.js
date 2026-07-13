@@ -1,11 +1,14 @@
 const params = new URLSearchParams(location.search);
 const site = params.get("site");
-if (site) document.getElementById("site-name").textContent = site;
+if (site) {
+  const siteNameEl = document.getElementById("site-name");
+  if (siteNameEl) siteNameEl.textContent = site;
+}
 
-const themeLink = document.getElementById("theme-css");
-const win = document.querySelector(".main-window");
+const themeLink = /** @type {HTMLLinkElement} */ (document.getElementById("theme-css"));
 const darkMq = matchMedia("(prefers-color-scheme: dark)");
 
+/** @type {string | boolean} */
 let darkModeSetting = "device";
 
 function applyDarkMode() {
@@ -20,8 +23,11 @@ darkMq.addEventListener("change", applyDarkMode);
 
 chrome.storage.local.get(
   { theme: "sober", blockTitle: "Sitio bloqueado", blockMessage: "Lo bloqueaste por una razón.", darkMode: "device" },
-  ({ theme, blockTitle, blockMessage, darkMode }) => {
-    darkModeSetting = typeof darkMode === "boolean" ? (darkMode ? "device" : "light") : darkMode;
+  (data) => {
+    const theme = /** @type {string} */ (data.theme);
+    const blockTitle = /** @type {string} */ (data.blockTitle);
+    const blockMessage = /** @type {string} */ (data.blockMessage);
+    darkModeSetting = /** @type {string | boolean} */ (data.darkMode);
     applyDarkMode();
 
     themeLink.href = theme === "retro"
@@ -29,23 +35,26 @@ chrome.storage.local.get(
       : "../options/theme-sober.css";
     document.documentElement.dataset.theme = theme;
 
-    document.getElementById("block-title").textContent   = blockTitle;
-    document.getElementById("block-message").textContent = blockMessage;
+    const titleEl = document.getElementById("block-title");
+    const messageEl = document.getElementById("block-message");
+    if (titleEl) titleEl.textContent = blockTitle;
+    if (messageEl) messageEl.textContent = blockMessage;
 
     runIntroAnimation("slide");
   }
 );
 
-document.getElementById("back-btn").addEventListener("click", () => {
+document.getElementById("back-btn")?.addEventListener("click", () => {
   if (history.length > 1) history.back();
   else window.location.href = "chrome://newtab";
 });
 
+/** @param {string} blockAnimation */
 function runIntroAnimation(blockAnimation) {
   const overlay  = document.getElementById("bt-overlay");
-  const floatImg = document.getElementById("bt-float-logo");
-  const brandWin = document.querySelector(".brand-window");
-  const mainWin  = document.querySelector(".main-window");
+  const floatImg = /** @type {HTMLElement | null} */ (document.getElementById("bt-float-logo"));
+  const brandWin = /** @type {HTMLElement} */ (document.querySelector(".brand-window"));
+  const mainWin  = /** @type {HTMLElement} */ (document.querySelector(".main-window"));
 
   if (!overlay || !floatImg) return;
 
@@ -55,7 +64,7 @@ function runIntroAnimation(blockAnimation) {
 
   // Short pause so the user sees the centered logo (continues from transition anim)
   setTimeout(() => {
-    const brandLogo = brandWin.querySelector(".brand-logo");
+    const brandLogo = /** @type {HTMLElement} */ (brandWin.querySelector(".brand-logo"));
     const r     = brandLogo.getBoundingClientRect();
     const dx    = (r.left + r.width  / 2) - window.innerWidth  / 2;
     const dy    = (r.top  + r.height / 2) - window.innerHeight / 2;

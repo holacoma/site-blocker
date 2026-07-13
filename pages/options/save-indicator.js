@@ -1,5 +1,6 @@
 import { t } from "../../shared/i18n.js";
 
+/** @type {ReturnType<typeof setTimeout> | null} */
 let _tid = null;
 
 export function flashSave() {
