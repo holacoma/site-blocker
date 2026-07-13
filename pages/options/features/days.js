@@ -1,5 +1,8 @@
 import { t } from "../../../shared/i18n.js";
 
+/** @typedef {import('../../../shared/types.js').Feature} Feature */
+
+/** @type {Feature} */
 export const DaysFeature = {
   id: "days",
   get label()       { return t("featureDaysLabel"); },

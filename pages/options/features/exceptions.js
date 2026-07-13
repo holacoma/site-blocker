@@ -1,5 +1,8 @@
 import { t } from "../../../shared/i18n.js";
 
+/** @typedef {import('../../../shared/types.js').Feature} Feature */
+
+/** @type {Feature} */
 export const ExceptionsFeature = {
   id: "exceptions",
   get label()       { return t("featureExceptionsLabel"); },

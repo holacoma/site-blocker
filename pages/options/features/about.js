@@ -3,7 +3,7 @@ import { t } from "../../../shared/i18n.js";
 const KOFI_URL = "https://ko-fi.com/zeeke94";
 
 export function renderAbout() {
-  const mount = document.getElementById("about-mount");
+  const mount = /** @type {HTMLElement} */ (document.getElementById("about-mount"));
   const manifest = chrome.runtime.getManifest();
 
   // Header
@@ -78,6 +78,7 @@ export function renderAbout() {
   mount.appendChild(donateBtn);
 }
 
+/** @param {string} text */
 function makeTitle(text) {
   const h3 = document.createElement("h3");
   h3.className = "about-section-title";
@@ -85,6 +86,10 @@ function makeTitle(text) {
   return h3;
 }
 
+/**
+ * @param {string} text
+ * @param {string} className
+ */
 function makeParagraphs(text, className) {
   return text.split("\n\n").map(chunk => {
     const p = document.createElement("p");

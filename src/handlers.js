@@ -3,6 +3,13 @@ import { getFullState, getBlockedSites, saveBlockedSites } from "../shared/stora
 import { isAlwaysAllowed, isBlocked } from "./blocking.js";
 import { pauseTimerForTab, resumeTimerForTab } from "./timer.js";
 
+/** @typedef {import('../shared/types.js').TabHostnames} TabHostnames */
+/** @typedef {import('../shared/types.js').ActiveTabPerWindow} ActiveTabPerWindow */
+/** @typedef {import('../shared/types.js').ActiveTimers} ActiveTimers */
+/** @typedef {import('../shared/types.js').PausedTimers} PausedTimers */
+/** @typedef {import('../shared/types.js').UsedTimerDates} UsedTimerDates */
+/** @typedef {import('../shared/types.js').RuntimeMessage} RuntimeMessage */
+
 const BLOCKED_PAGE = chrome.runtime.getURL("pages/blocked/blocked.html");
 
 function getToday() {
@@ -15,15 +22,14 @@ chrome.webNavigation.onCommitted.addListener((details) => {
     const hostname = new URL(details.url).hostname.replace(/^www\./, "");
     console.log("[SB] onCommitted tab=" + details.tabId + " hostname=" + hostname);
     chrome.storage.session.get({ tabHostnames: {}, activeTabPerWindow: {} }, (data) => {
-      data.tabHostnames[String(details.tabId)] = hostname;
+      const tabHostnames = /** @type {TabHostnames} */ (data.tabHostnames);
+      const activeTabPerWindow = /** @type {ActiveTabPerWindow} */ (data.activeTabPerWindow);
+      tabHostnames[String(details.tabId)] = hostname;
       chrome.tabs.get(details.tabId, (tab) => {
         if (!chrome.runtime.lastError && tab?.active) {
-          data.activeTabPerWindow[String(tab.windowId)] = details.tabId;
+          activeTabPerWindow[String(tab.windowId)] = details.tabId;
         }
-        chrome.storage.session.set({
-          tabHostnames: data.tabHostnames,
-          activeTabPerWindow: data.activeTabPerWindow,
-        });
+        chrome.storage.session.set({ tabHostnames, activeTabPerWindow });
       });
     });
   } catch {}
@@ -32,22 +38,22 @@ chrome.webNavigation.onCommitted.addListener((details) => {
 chrome.tabs.onRemoved.addListener((tabId) => {
   pauseTimerForTab(tabId);
   chrome.storage.session.get({ tabHostnames: {}, activeTabPerWindow: {} }, (data) => {
-    delete data.tabHostnames[String(tabId)];
-    for (const [wid, tid] of Object.entries(data.activeTabPerWindow)) {
-      if (tid === tabId) delete data.activeTabPerWindow[wid];
+    const tabHostnames = /** @type {TabHostnames} */ (data.tabHostnames);
+    const activeTabPerWindow = /** @type {ActiveTabPerWindow} */ (data.activeTabPerWindow);
+    delete tabHostnames[String(tabId)];
+    for (const [wid, tid] of Object.entries(activeTabPerWindow)) {
+      if (tid === tabId) delete activeTabPerWindow[wid];
     }
-    chrome.storage.session.set({
-      tabHostnames: data.tabHostnames,
-      activeTabPerWindow: data.activeTabPerWindow,
-    });
+    chrome.storage.session.set({ tabHostnames, activeTabPerWindow });
   });
 });
 
 chrome.tabs.onActivated.addListener(({ tabId, windowId }) => {
   chrome.storage.session.get({ activeTabPerWindow: {} }, (data) => {
-    const prevTabId = data.activeTabPerWindow[String(windowId)];
-    data.activeTabPerWindow[String(windowId)] = tabId;
-    chrome.storage.session.set({ activeTabPerWindow: data.activeTabPerWindow });
+    const activeTabPerWindow = /** @type {ActiveTabPerWindow} */ (data.activeTabPerWindow);
+    const prevTabId = activeTabPerWindow[String(windowId)];
+    activeTabPerWindow[String(windowId)] = tabId;
+    chrome.storage.session.set({ activeTabPerWindow });
     if (prevTabId && prevTabId !== tabId) pauseTimerForTab(prevTabId);
     resumeTimerForTab(tabId);
   });
@@ -56,21 +62,20 @@ chrome.tabs.onActivated.addListener(({ tabId, windowId }) => {
 chrome.windows.onFocusChanged.addListener((windowId) => {
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     chrome.storage.local.get({ activeTimers: {}, pausedTimers: {} }, (data) => {
+      const activeTimers = /** @type {ActiveTimers} */ (data.activeTimers);
+      const pausedTimers = /** @type {PausedTimers} */ (data.pausedTimers);
       let changed = false;
-      for (const domain of Object.keys(data.activeTimers)) {
-        const remaining = data.activeTimers[domain] - Date.now();
-        if (remaining > 0) data.pausedTimers[domain] = remaining;
-        delete data.activeTimers[domain];
+      for (const domain of Object.keys(activeTimers)) {
+        const remaining = activeTimers[domain] - Date.now();
+        if (remaining > 0) pausedTimers[domain] = remaining;
+        delete activeTimers[domain];
         changed = true;
       }
-      if (changed)
-        chrome.storage.local.set({
-          activeTimers: data.activeTimers,
-          pausedTimers: data.pausedTimers,
-        });
+      if (changed) chrome.storage.local.set({ activeTimers, pausedTimers });
     });
   } else {
-    chrome.storage.session.get({ activeTabPerWindow: {} }, ({ activeTabPerWindow }) => {
+    chrome.storage.session.get({ activeTabPerWindow: {} }, (data) => {
+      const activeTabPerWindow = /** @type {ActiveTabPerWindow} */ (data.activeTabPerWindow);
       const activeTabId = activeTabPerWindow[String(windowId)];
       if (activeTabId) resumeTimerForTab(activeTabId);
     });
@@ -88,7 +93,8 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
     return;
   }
 
-  chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
+  chrome.storage.session.get({ tabHostnames: {} }, (data) => {
+    const tabHostnames = /** @type {TabHostnames} */ (data.tabHostnames);
     const oldHostname = tabHostnames[String(details.tabId)] ?? "";
     console.log(
       "[SB] onBeforeNavigate tab=" + details.tabId +
@@ -157,10 +163,11 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
 
 chrome.runtime.onStartup.addListener(() => {
   chrome.tabs.query({}, (tabs) => {
+    /** @type {TabHostnames} */
     const tabHostnames = {};
     for (const tab of tabs) {
       try {
-        const hostname = new URL(tab.url).hostname.replace(/^www\./, "");
+        const hostname = new URL(/** @type {string} */ (tab.url)).hostname.replace(/^www\./, "");
         tabHostnames[String(tab.id)] = hostname;
       } catch {}
     }
@@ -176,7 +183,8 @@ chrome.runtime.onStartup.addListener(() => {
   });
 });
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((rawMsg, sender, sendResponse) => {
+  const msg = /** @type {RuntimeMessage} */ (rawMsg);
   if (msg.type === "BLOCK_SITE") {
     getBlockedSites((sites) => {
       if (sites.some((s) => s.domain === msg.domain)) {
@@ -204,27 +212,25 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg.type === "START_TIMER") {
     chrome.storage.local.get({ activeTimers: {}, usedTimerDates: {} }, (data) => {
-      data.activeTimers[msg.domain] = Date.now() + msg.minutes * 60 * 1000;
-      data.usedTimerDates[msg.domain] = getToday();
-      chrome.storage.local.set(
-        { activeTimers: data.activeTimers, usedTimerDates: data.usedTimerDates },
-        () => sendResponse({ ok: true })
-      );
+      const activeTimers = /** @type {ActiveTimers} */ (data.activeTimers);
+      const usedTimerDates = /** @type {UsedTimerDates} */ (data.usedTimerDates);
+      activeTimers[msg.domain] = Date.now() + msg.minutes * 60 * 1000;
+      usedTimerDates[msg.domain] = getToday();
+      chrome.storage.local.set({ activeTimers, usedTimerDates }, () => sendResponse({ ok: true }));
     });
     return true;
   }
 
   if (msg.type === "STOP_TIMER") {
     chrome.storage.local.get({ activeTimers: {}, usedTimerDates: {}, pausedTimers: {} }, (data) => {
-      delete data.activeTimers[msg.domain];
-      delete data.usedTimerDates[msg.domain];
-      delete data.pausedTimers[msg.domain];
+      const activeTimers = /** @type {ActiveTimers} */ (data.activeTimers);
+      const usedTimerDates = /** @type {UsedTimerDates} */ (data.usedTimerDates);
+      const pausedTimers = /** @type {PausedTimers} */ (data.pausedTimers);
+      delete activeTimers[msg.domain];
+      delete usedTimerDates[msg.domain];
+      delete pausedTimers[msg.domain];
       chrome.storage.local.set(
-        {
-          activeTimers: data.activeTimers,
-          usedTimerDates: data.usedTimerDates,
-          pausedTimers: data.pausedTimers,
-        },
+        { activeTimers, usedTimerDates, pausedTimers },
         () => sendResponse({ ok: true })
       );
     });
@@ -242,7 +248,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ expiry: null });
         return;
       }
-      chrome.storage.local.get({ activeTimers: {}, pausedTimers: {} }, ({ activeTimers, pausedTimers }) => {
+      chrome.storage.local.get({ activeTimers: {}, pausedTimers: {} }, (data) => {
+        const activeTimers = /** @type {ActiveTimers} */ (data.activeTimers);
+        const pausedTimers = /** @type {PausedTimers} */ (data.pausedTimers);
         const expiry = activeTimers[site.domain] ?? null;
         const pausedRemaining = pausedTimers[site.domain] ?? null;
         sendResponse(pausedRemaining ? { expiry, pausedRemaining } : { expiry });

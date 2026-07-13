@@ -1,8 +1,12 @@
 import { BlockedSite } from "../shared/BlockedSite.js";
 import { getFullState } from "../shared/storage.js";
 
+/** @typedef {import('../shared/types.js').TabHostnames} TabHostnames */
+
+/** @param {number} tabId */
 export function pauseTimerForTab(tabId) {
-  chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
+  chrome.storage.session.get({ tabHostnames: {} }, (data) => {
+    const tabHostnames = /** @type {TabHostnames} */ (data.tabHostnames);
     const hostname = tabHostnames[String(tabId)];
     if (!hostname) return;
     getFullState((sites, activeTimers, _used, pausedTimers) => {
@@ -17,8 +21,10 @@ export function pauseTimerForTab(tabId) {
   });
 }
 
+/** @param {number} tabId */
 export function resumeTimerForTab(tabId) {
-  chrome.storage.session.get({ tabHostnames: {} }, ({ tabHostnames }) => {
+  chrome.storage.session.get({ tabHostnames: {} }, (data) => {
+    const tabHostnames = /** @type {TabHostnames} */ (data.tabHostnames);
     const hostname = tabHostnames[String(tabId)];
     if (!hostname) return;
     getFullState((sites, activeTimers, _used, pausedTimers) => {

@@ -1,11 +1,15 @@
 import { t } from "../../../shared/i18n.js";
 
+/** @typedef {import('../../../shared/types.js').Feature} Feature */
+
+/** @param {number} ms */
 function formatMs(ms) {
   if (ms <= 0) return "0:00";
   const totalSec = Math.ceil(ms / 1000);
   return `${Math.floor(totalSec / 60)}:${String(totalSec % 60).padStart(2, "0")}`;
 }
 
+/** @type {Feature} */
 export const TimerFeature = {
   id: "timer",
   get label()       { return t("featureTimerLabel"); },
@@ -18,11 +22,11 @@ export const TimerFeature = {
     const row = document.createElement("div");
     row.className = "timer-row";
 
-    const minInput = document.createElement("input");
+    const minInput = /** @type {HTMLInputElement} */ (document.createElement("input"));
     minInput.type = "number";
     minInput.min = "0";
     minInput.max = "480";
-    minInput.value = site.timerMinutes || "";
+    minInput.value = String(site.timerMinutes || "");
     minInput.placeholder = "min";
     minInput.title = t("timerMinTitle");
 
@@ -57,7 +61,7 @@ export const TimerFeature = {
 
     minInput.addEventListener("change", () => {
       const val = Math.max(0, parseInt(minInput.value, 10) || 0);
-      minInput.value = val || "";
+      minInput.value = String(val || "");
       site.timerMinutes = val;
       ctx.onUpdate(site);
       if (val === 0) {

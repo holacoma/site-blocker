@@ -6,11 +6,14 @@ const KEY_BAR      = "overlayBarTheme";
 const KEY_POSITION = "overlayBarPosition";
 const KEY_EXPIRY   = "overlayExpiryTheme";
 
+/** @typedef {{id: string, name: string, nameEn: string}} OverlayTheme */
+
+/** @param {HTMLLinkElement} themeLink */
 export function renderAppearance(themeLink) {
-  const mount = document.getElementById("appearance-mount");
+  const mount = /** @type {HTMLElement} */ (document.getElementById("appearance-mount"));
 
   // ── Dark mode ──
-  const darkSelect = document.createElement("select");
+  const darkSelect = /** @type {HTMLSelectElement} */ (document.createElement("select"));
   darkSelect.id = "dark-mode-select";
   [["device", t("darkModeDevice")], ["light", t("darkModeLight")], ["dark", t("darkModeDark")]].forEach(([val, text]) => {
     const opt = document.createElement("option");
@@ -26,7 +29,8 @@ export function renderAppearance(themeLink) {
     darkSelect
   ));
 
-  chrome.storage.local.get({ darkMode: "device" }, ({ darkMode }) => {
+  chrome.storage.local.get({ darkMode: "device" }, (data) => {
+    const darkMode = /** @type {string | boolean} */ (data.darkMode);
     const setting = typeof darkMode === "boolean" ? (darkMode ? "device" : "light") : darkMode;
     darkSelect.value = setting;
   });
@@ -38,7 +42,7 @@ export function renderAppearance(themeLink) {
   mount.appendChild(makeDivider());
 
   // ── Theme ──
-  const themeSelect = document.createElement("select");
+  const themeSelect = /** @type {HTMLSelectElement} */ (document.createElement("select"));
   themeSelect.id = "theme-select";
   [["retro", t("themeRetro")], ["sober", t("themeSober")]].forEach(([val, text]) => {
     const opt = document.createElement("option");
@@ -48,12 +52,13 @@ export function renderAppearance(themeLink) {
   });
   mount.appendChild(makeRow(t("themeLabel"), t("themeSubtitle"), themeSelect));
 
+  /** @param {string} theme */
   function applyTheme(theme) {
     themeLink.href = theme === "sober" ? "theme-sober.css" : "theme-retro.css";
     document.documentElement.dataset.theme = theme;
     themeSelect.value = theme;
   }
-  chrome.storage.local.get({ theme: "sober" }, ({ theme }) => applyTheme(theme));
+  chrome.storage.local.get({ theme: "sober" }, (data) => applyTheme(/** @type {string} */ (data.theme)));
   themeSelect.addEventListener("change", () => {
     applyTheme(themeSelect.value);
     chrome.storage.local.set({ theme: themeSelect.value });
@@ -70,7 +75,7 @@ export function renderAppearance(themeLink) {
           titleKey:     "appearanceBarTitle",
           subtitleKey:  "appearanceBarSubtitle",
           themes:       BAR_THEMES,
-          selectedId:   prefs[KEY_BAR],
+          selectedId:   /** @type {string} */ (prefs[KEY_BAR]),
           storageKey:   KEY_BAR,
           buildPreview: buildBarPreview,
         })
@@ -83,7 +88,7 @@ export function renderAppearance(themeLink) {
           titleKey:     "appearancePositionTitle",
           subtitleKey:  "appearancePositionSubtitle",
           themes:       BAR_POSITIONS,
-          selectedId:   prefs[KEY_POSITION],
+          selectedId:   /** @type {string} */ (prefs[KEY_POSITION]),
           storageKey:   KEY_POSITION,
           buildPreview: buildPositionPreview,
         })
@@ -96,7 +101,7 @@ export function renderAppearance(themeLink) {
           titleKey:     "appearanceExpiryTitle",
           subtitleKey:  "appearanceExpirySubtitle",
           themes:       EXPIRY_THEMES,
-          selectedId:   prefs[KEY_EXPIRY],
+          selectedId:   /** @type {string} */ (prefs[KEY_EXPIRY]),
           storageKey:   KEY_EXPIRY,
           buildPreview: buildExpiryPreview,
         })
@@ -111,11 +116,21 @@ function makeDivider() {
   return hr;
 }
 
+/**
+ * @param {{
+ *   titleKey: string,
+ *   subtitleKey: string,
+ *   themes: OverlayTheme[],
+ *   selectedId: string,
+ *   storageKey: string,
+ *   buildPreview: (id: string) => HTMLElement,
+ * }} config
+ */
 function buildSubsection({ titleKey, subtitleKey, themes, selectedId, storageKey, buildPreview }) {
   const wrap = document.createElement("div");
 
   // Select element
-  const sel = document.createElement("select");
+  const sel = /** @type {HTMLSelectElement} */ (document.createElement("select"));
   themes.forEach((theme) => {
     const opt = document.createElement("option");
     opt.value = theme.id;
@@ -144,6 +159,11 @@ function buildSubsection({ titleKey, subtitleKey, themes, selectedId, storageKey
   return wrap;
 }
 
+/**
+ * @param {string} title
+ * @param {string} subtitle
+ * @param {HTMLElement} control
+ */
 function makeRow(title, subtitle, control) {
   const row = document.createElement("div");
   row.className = "setting-row";
@@ -165,6 +185,11 @@ function makeRow(title, subtitle, control) {
   return row;
 }
 
+/**
+ * @param {string} titleKey
+ * @param {string} subtitleKey
+ * @param {HTMLElement} control
+ */
 function makeSettingRow(titleKey, subtitleKey, control) {
   return makeRow(t(titleKey), t(subtitleKey), control);
 }
@@ -172,13 +197,14 @@ function makeSettingRow(titleKey, subtitleKey, control) {
 const PV_DOT_COUNT = 12;
 const PV_DOT_ACTIVE = 8; // ~65% for preview
 
+/** @param {string} themeId */
 function buildBarPreview(themeId) {
   const screen = document.createElement("div");
   screen.className = "preview-screen";
 
   const bg = document.createElement("div");
   bg.className = "preview-page-bg";
-  bg.textContent = "— sitio web —";
+  bg.textContent = "sitio web";
 
   const bar = document.createElement("div");
   bar.className = "pv-bar";
@@ -208,13 +234,14 @@ function buildBarPreview(themeId) {
   return screen;
 }
 
+/** @param {string} posId */
 function buildPositionPreview(posId) {
   const screen = document.createElement("div");
   screen.className = "preview-screen";
 
   const bg = document.createElement("div");
   bg.className = "preview-page-bg";
-  bg.textContent = "— sitio web —";
+  bg.textContent = "sitio web";
 
   const indicator = document.createElement("div");
   indicator.className = "pv-pos-indicator";
@@ -225,13 +252,14 @@ function buildPositionPreview(posId) {
   return screen;
 }
 
+/** @param {string} themeId */
 function buildExpiryPreview(themeId) {
   const screen = document.createElement("div");
   screen.className = "preview-screen";
 
   const bg = document.createElement("div");
   bg.className = "preview-page-bg";
-  bg.textContent = "— sitio web —";
+  bg.textContent = "sitio web";
 
   const overlay = document.createElement("div");
   overlay.className = "pv-expiry";
