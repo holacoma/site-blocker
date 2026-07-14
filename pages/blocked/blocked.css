@@ -4,11 +4,30 @@ body {
   margin: 0;
   padding: 32px 16px;
   min-height: 100vh;
+  /* theme-sober.css caps body at 800px for the options page; this page now
+     needs two 400px columns side by side, so that cap has to go. */
+  max-width: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.page-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 14px;
+  width: 100%;
+  max-width: 400px;
 }
 
 .brand-window,
@@ -56,6 +75,41 @@ body {
 .main-window.anim-slide { animation: sb-slide 0.6s  ease-out both; }
 .main-window.anim-scale { animation: sb-scale 0.55s ease-out both; }
 
+/* ── Panel discreto (¿Aburrido? + iframe/frase), en el flujo normal de la página ── */
+.redirect-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.side-panel {
+  max-width: 400px;
+}
+.side-panel.anim-slide { animation-duration: 1s; }
+
+/* Texto flotante, sin caja: solo el gradiente arcoíris sobre el tipo */
+.bored-text {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+  background: linear-gradient(90deg, #ff0057, #ff9a00, #d4ff00, #00e0a4, #00c2ff, #7b2fff, #ff0057);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: bored-shine 3.5s linear infinite;
+  transition: opacity 0.8s ease;
+}
+.bored-text.bored-hidden { opacity: 0; }
+[data-theme="retro"] .bored-text { font-family: "Pixelated MS Sans Serif", Arial; font-size: 20px; }
+
+@keyframes bored-shine {
+  to { background-position: 200% center; }
+}
+
 .block-site {
   font-family: monospace;
   font-size: 13px;
@@ -82,20 +136,52 @@ body {
   margin: 0 0 14px;
 }
 
-[data-theme="sober"] #back-btn {
+.frame-panel {
+  width: 100%;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.frame-panel.frame-visible { opacity: 1; }
+
+.redirect-iframe {
+  width: 100%;
+  height: 280px;
+  border: 1px solid #dde1e7;
+  border-radius: 6px;
+}
+[data-theme="retro"] .redirect-iframe {
+  border: 2px inset #808080;
+  border-radius: 0;
+}
+
+.frame-fallback { text-align: center; }
+
+.frame-quote {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+[data-theme="retro"] .frame-quote {
+  font-family: "Pixelated MS Sans Serif", Arial;
+  font-size: 11px;
+  color: #333;
+}
+
+[data-theme="sober"] #frame-another-btn {
   background: #f8f9fa;
   border: 1.5px solid #dde1e7;
   border-radius: 6px;
   color: #444;
   font-size: 13px;
-  padding: 7px 16px;
+  padding: 6px 14px;
   cursor: pointer;
   box-shadow: none;
   min-width: unset;
   min-height: unset;
   margin: 0;
 }
-[data-theme="sober"] #back-btn:hover {
+[data-theme="sober"] #frame-another-btn:hover {
   background: #eef0f3;
   border-color: #bbb;
   color: #111;

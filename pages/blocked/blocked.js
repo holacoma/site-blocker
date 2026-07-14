@@ -1,3 +1,15 @@
+import { initLang, t, getLang } from "../../shared/i18n.js";
+import { randomQuote } from "../../shared/quotes.js";
+
+const USELESS_WEB_URL = "https://theuselessweb.com/";
+const AUTO_OPEN_DELAY_MS = 5000;
+// Matches the .bored-text opacity transition duration in blocked.css
+const BORED_FADE_MS = 800;
+const FRAME_TIMEOUT_MS = 2500;
+// A "load" firing this fast almost always means the site refused to be framed
+// (X-Frame-Options / CSP frame-ancestors) rather than actually rendering.
+const FRAME_FAST_LOAD_MS = 250;
+
 const params = new URLSearchParams(location.search);
 const site = params.get("site");
 if (site) {
@@ -21,33 +33,139 @@ function applyDarkMode() {
 
 darkMq.addEventListener("change", applyDarkMode);
 
-chrome.storage.local.get(
-  { theme: "sober", blockTitle: "Sitio bloqueado", blockMessage: "Lo bloqueaste por una razón.", darkMode: "device" },
-  (data) => {
-    const theme = /** @type {string} */ (data.theme);
-    const blockTitle = /** @type {string} */ (data.blockTitle);
-    const blockMessage = /** @type {string} */ (data.blockMessage);
-    darkModeSetting = /** @type {string | boolean} */ (data.darkMode);
-    applyDarkMode();
+initLang().then(() => {
+  chrome.storage.local.get(
+    {
+      theme: "sober",
+      blockTitle: "Sitio bloqueado",
+      blockMessage: "Lo bloqueaste por una razón.",
+      darkMode: "device",
+      blockRedirectMode: "useless",
+      blockRedirectUrl: "",
+    },
+    (data) => {
+      const theme = /** @type {string} */ (data.theme);
+      const blockTitle = /** @type {string} */ (data.blockTitle);
+      const blockMessage = /** @type {string} */ (data.blockMessage);
+      const redirectMode = /** @type {string} */ (data.blockRedirectMode);
+      const redirectUrl = /** @type {string} */ (data.blockRedirectUrl);
+      darkModeSetting = /** @type {string | boolean} */ (data.darkMode);
+      applyDarkMode();
 
-    themeLink.href = theme === "retro"
-      ? "../options/theme-retro.css"
-      : "../options/theme-sober.css";
-    document.documentElement.dataset.theme = theme;
+      themeLink.href = theme === "retro"
+        ? "../options/theme-retro.css"
+        : "../options/theme-sober.css";
+      document.documentElement.dataset.theme = theme;
 
-    const titleEl = document.getElementById("block-title");
-    const messageEl = document.getElementById("block-message");
-    if (titleEl) titleEl.textContent = blockTitle;
-    if (messageEl) messageEl.textContent = blockMessage;
+      const titleEl = document.getElementById("block-title");
+      const messageEl = document.getElementById("block-message");
+      if (titleEl) titleEl.textContent = blockTitle;
+      if (messageEl) messageEl.textContent = blockMessage;
 
-    runIntroAnimation("slide");
-  }
-);
+      setupRedirectFrame(redirectMode, redirectUrl);
 
-document.getElementById("back-btn")?.addEventListener("click", () => {
-  if (history.length > 1) history.back();
-  else window.location.href = "chrome://newtab";
+      runIntroAnimation("slide");
+    }
+  );
 });
+
+/**
+ * @param {string} redirectMode
+ * @param {string} redirectUrl
+ */
+function setupRedirectFrame(redirectMode, redirectUrl) {
+  const panel       = /** @type {HTMLElement | null} */ (document.getElementById("redirect-panel"));
+  const panelTitle  = document.getElementById("redirect-window-title");
+  const boredText   = document.getElementById("bored-text");
+  const framePanel  = document.getElementById("frame-panel");
+  const iframe      = /** @type {HTMLIFrameElement | null} */ (document.getElementById("redirect-iframe"));
+  const fallback    = document.getElementById("frame-fallback");
+  const quoteEl     = document.getElementById("frame-quote");
+  const anotherBtn  = document.getElementById("frame-another-btn");
+  if (!panel || !panelTitle || !boredText || !framePanel || !iframe || !fallback || !quoteEl || !anotherBtn) return;
+
+  boredText.textContent = t("blockBoredLabel");
+  anotherBtn.textContent = t("motivationalAnother");
+
+  panelTitle.textContent =
+    redirectMode === "motivational" ? t("blockRedirectMotivational") :
+    redirectMode === "custom" && redirectUrl.trim() ? hostnameOf(normalizeUrl(redirectUrl.trim())) :
+    t("blockRedirectWindowUseless");
+
+  function showQuote() {
+    iframe.hidden = true;
+    fallback.hidden = false;
+    quoteEl.textContent = randomQuote(/** @type {"es" | "en"} */ (getLang()));
+  }
+
+  anotherBtn.addEventListener("click", showQuote);
+
+  // "¿Aburrido?" floats as plain text first (no card around it). Only once
+  // the destination is ready does the window (same style as the block card,
+  // in the normal page flow, no fixed/overlay positioning) slide into view.
+  setTimeout(() => {
+    boredText.classList.add("bored-hidden");
+    setTimeout(() => { boredText.hidden = true; }, BORED_FADE_MS);
+
+    panel.hidden = false;
+    requestAnimationFrame(() => panel.classList.add("anim-slide"));
+
+    framePanel.hidden = false;
+    requestAnimationFrame(() => framePanel.classList.add("frame-visible"));
+
+    if (redirectMode === "motivational") {
+      showQuote();
+    } else {
+      const url = redirectMode === "custom" && redirectUrl.trim()
+        ? normalizeUrl(redirectUrl.trim())
+        : USELESS_WEB_URL;
+      attemptFrame(iframe, showQuote, url);
+    }
+  }, AUTO_OPEN_DELAY_MS);
+}
+
+/** @param {string} url */
+function hostnameOf(url) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * @param {HTMLIFrameElement} iframe
+ * @param {() => void} onBlocked
+ * @param {string} url
+ */
+function attemptFrame(iframe, onBlocked, url) {
+  const startedAt = Date.now();
+  let settled = false;
+
+  const timeoutId = setTimeout(() => {
+    if (settled) return;
+    settled = true;
+    onBlocked();
+  }, FRAME_TIMEOUT_MS);
+
+  iframe.addEventListener("load", () => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timeoutId);
+    if (Date.now() - startedAt < FRAME_FAST_LOAD_MS) {
+      onBlocked();
+    } else {
+      iframe.hidden = false;
+    }
+  }, { once: true });
+
+  iframe.src = url;
+}
+
+/** @param {string} url */
+function normalizeUrl(url) {
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
 
 /** @param {string} blockAnimation */
 function runIntroAnimation(blockAnimation) {
