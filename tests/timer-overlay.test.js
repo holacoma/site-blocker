@@ -172,6 +172,19 @@ describe("timer-overlay — pause/resume state machine", () => {
     expect(setIntervalCallCount()).toBeGreaterThan(callsAfterStart);
   });
 
+  it("requests \"border\" as the default bar theme when nothing is stored", async () => {
+    const { chrome, sendMsgCalls } = buildOverlay();
+
+    sendMsgCalls.shift()?.cb({ expiry: Date.now() + 60_000 });
+    await flush();
+
+    expect(chrome.storage.local.get.mock.calls[0][0]).toEqual({
+      overlayBarTheme: "border",
+      overlayBarPosition: "bottom",
+      overlayExpiryTheme: "blur",
+    });
+  });
+
   it("sends REDIRECT_TO_BLOCKED (not chrome-extension://invalid/) after block transition", async () => {
     const { sendMsgCalls, timeoutCallbacks, setIntervalMock } = buildOverlay("reddit.com");
 

@@ -135,9 +135,9 @@ function buildSubsection({ titleKey, subtitleKey, themes, selectedId, storageKey
     const opt = document.createElement("option");
     opt.value = theme.id;
     opt.textContent = getLang() === "en" ? theme.nameEn : theme.name;
-    if (theme.id === selectedId) opt.selected = true;
     sel.appendChild(opt);
   });
+  sel.value = selectedId;
 
   // Setting row (same pattern as general.js)
   wrap.appendChild(makeSettingRow(titleKey, subtitleKey, sel));
