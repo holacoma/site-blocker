@@ -752,6 +752,22 @@ html[data-darkmode="on"][data-theme="sober"] .toggle-btn[aria-pressed="true"] { 
 }
 [data-theme="retro"] .block-anim-select { font-size: 11px; margin: 0 0 8px; }
 
+.block-redirect-select {
+  width: 100%;
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+[data-theme="retro"] .block-redirect-select { font-size: 11px; margin: 0 0 4px; }
+
+.block-redirect-hint { margin: 0 0 8px; }
+
+.block-redirect-url {
+  width: 100%;
+  margin: 0 0 14px;
+  font-size: 13px;
+}
+[data-theme="retro"] .block-redirect-url { font-size: 11px; margin: 0 0 8px; }
+
 .block-preview-btn {
   display: inline-block;
   background: #f8f9fa;

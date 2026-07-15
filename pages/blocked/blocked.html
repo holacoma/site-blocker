@@ -21,24 +21,54 @@
     <div id="sb-b3"></div>
     <div id="sb-b4"></div>
   </div>
-  <div class="window brand-window">
-    <div class="title-bar brand-bar">
-      <div class="title-bar-text">
-        <img class="brand-logo" src="../../assets/BlockDoze_Original.svg" alt="BlockDoze" />
+  <div class="page-row">
+    <div class="page-col">
+      <div class="window brand-window">
+        <div class="title-bar brand-bar">
+          <div class="title-bar-text">
+            <img class="brand-logo" src="../../assets/BlockDoze_Original.svg" alt="BlockDoze" />
+          </div>
+        </div>
+      </div>
+      <div class="window main-window">
+        <div class="title-bar">
+          <div class="title-bar-text" id="block-title">Sitio bloqueado</div>
+        </div>
+        <div class="window-body">
+          <p class="block-site" id="site-name"></p>
+          <p class="block-message" id="block-message">Lo bloqueaste por una razón.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="redirect-area" class="redirect-area">
+      <p id="bored-text" class="bored-text"></p>
+
+      <div id="redirect-panel" class="window main-window side-panel" inert>
+        <div class="title-bar">
+          <div class="title-bar-text" id="redirect-window-title"></div>
+          <div class="title-bar-controls">
+            <button id="frame-fullscreen-btn" class="fullscreen-btn" type="button">⛶</button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div id="frame-toolbar" class="frame-toolbar" hidden>
+            <button id="frame-reload-btn" class="frame-tool-btn" type="button">↻</button>
+            <button id="frame-newtab-btn" class="frame-tool-btn" type="button">↗</button>
+          </div>
+          <div id="frame-panel" class="frame-panel">
+            <iframe id="redirect-iframe" class="redirect-iframe" hidden></iframe>
+            <div id="frame-fallback" class="frame-fallback" hidden>
+              <p class="frame-quote" id="frame-quote"></p>
+              <button id="frame-another-btn" type="button"></button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="window main-window">
-    <div class="title-bar">
-      <div class="title-bar-text" id="block-title">Sitio bloqueado</div>
-    </div>
-    <div class="window-body">
-      <p class="block-site" id="site-name"></p>
-      <p class="block-message" id="block-message">Lo bloqueaste por una razón.</p>
-      <button id="back-btn">← Volver</button>
-    </div>
-  </div>
+
   <script src="../options/bg.js"></script>
-  <script src="blocked.js"></script>
+  <script type="module" src="blocked.js"></script>
 </body>
 </html>

@@ -110,6 +110,8 @@ html[data-darkmode="on"][data-theme="sober"] #back-btn         { background: #2c
 html[data-darkmode="on"][data-theme="sober"] #back-btn:hover   { background: #3a3a3c; border-color: #636366; color: #fff; }
 
 /* ── Blocked page text ── */
+/* Retro's window card stays silver regardless of dark mode (98.css has no
+   dark variant), so these only apply to sober, whose card actually goes dark. */
 
-html[data-darkmode="on"] .block-site    { color: #636366; }
-html[data-darkmode="on"] .block-message { color: #aeaeb2; }
+html[data-darkmode="on"][data-theme="sober"] .block-site    { color: #636366; }
+html[data-darkmode="on"][data-theme="sober"] .block-message { color: #aeaeb2; }

@@ -1,6 +1,9 @@
 import { t } from "../../../shared/i18n.js";
 import { flashSave } from "../save-indicator.js";
 
+const KEY_REDIRECT_MODE = "blockRedirectMode";
+const KEY_REDIRECT_URL  = "blockRedirectUrl";
+
 export function renderBlock() {
   const mount = /** @type {HTMLElement} */ (document.getElementById("block-mount"));
 
@@ -17,6 +20,57 @@ export function renderBlock() {
   msgInput.className = "block-text-area";
   msgInput.rows = 3;
   mount.appendChild(msgInput);
+
+  mount.appendChild(makeDivider());
+
+  // Exit button redirect
+  mount.appendChild(makeField("blockRedirectLabel", "blockRedirectDesc"));
+
+  const redirectSelect = /** @type {HTMLSelectElement} */ (document.createElement("select"));
+  redirectSelect.className = "block-redirect-select";
+  [
+    ["useless", t("blockRedirectUseless")],
+    ["motivational", t("blockRedirectMotivational")],
+    ["custom", t("blockRedirectCustom")],
+  ].forEach(([val, label]) => {
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = label;
+    redirectSelect.appendChild(opt);
+  });
+  mount.appendChild(redirectSelect);
+
+  const redirectHint = document.createElement("div");
+  redirectHint.className = "block-field-desc block-redirect-hint";
+  redirectHint.textContent = t("blockRedirectFrameHint");
+  mount.appendChild(redirectHint);
+
+  const redirectUrlInput = /** @type {HTMLInputElement} */ (document.createElement("input"));
+  redirectUrlInput.type = "text";
+  redirectUrlInput.className = "block-redirect-url";
+  redirectUrlInput.placeholder = t("blockRedirectUrlPlaceholder");
+  mount.appendChild(redirectUrlInput);
+
+  function syncRedirectUrlVisibility() {
+    redirectUrlInput.style.display = redirectSelect.value === "custom" ? "" : "none";
+  }
+
+  chrome.storage.local.get({ [KEY_REDIRECT_MODE]: "useless", [KEY_REDIRECT_URL]: "" }, (data) => {
+    redirectSelect.value = /** @type {string} */ (data[KEY_REDIRECT_MODE]);
+    redirectUrlInput.value = /** @type {string} */ (data[KEY_REDIRECT_URL]);
+    syncRedirectUrlVisibility();
+  });
+
+  redirectSelect.addEventListener("change", () => {
+    syncRedirectUrlVisibility();
+    chrome.storage.local.set({ [KEY_REDIRECT_MODE]: redirectSelect.value }, flashSave);
+  });
+
+  redirectUrlInput.addEventListener("input", () => {
+    chrome.storage.local.set({ [KEY_REDIRECT_URL]: redirectUrlInput.value }, flashSave);
+  });
+
+  mount.appendChild(makeDivider());
 
   // Preview button
   const previewBtn = document.createElement("button");
@@ -50,6 +104,12 @@ export function renderBlock() {
 
   titleInput.addEventListener("input", save);
   msgInput.addEventListener("input", save);
+}
+
+function makeDivider() {
+  const hr = document.createElement("hr");
+  hr.className = "setting-divider";
+  return hr;
 }
 
 function showTransitionPreview() {

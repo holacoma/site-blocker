@@ -12,12 +12,8 @@ const rules = css
 const variableBlock    = /^html\[data-darkmode="on"\]\s*\{/;
 const themeScopedRule  = /\[data-theme=/;
 
-// Selectores que aplican a todos los temas intencionalmente:
-// el fondo oscuro afecta la legibilidad en blocked page sin importar el tema.
-const intentionallyUnscoped = [
-  'html[data-darkmode="on"] .block-site',
-  'html[data-darkmode="on"] .block-message',
-];
+// Selectores que aplican a todos los temas intencionalmente.
+const intentionallyUnscoped = [];
 
 describe("dark.css — selectores de UI acotados por tema", () => {
   test("ningún selector de UI carece de [data-theme] sin ser intencional", () => {
