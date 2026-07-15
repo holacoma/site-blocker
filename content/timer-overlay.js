@@ -25,7 +25,7 @@
     if (started || !expiry || Date.now() >= expiry) return;
     started = true;
     chrome.storage.local.get(
-      { overlayBarTheme: "dots", overlayBarPosition: "bottom", overlayExpiryTheme: "blur" },
+      { overlayBarTheme: "border", overlayBarPosition: "bottom", overlayExpiryTheme: "blur" },
       (data) => {
         initNormalPhase(
           expiry,

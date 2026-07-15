@@ -1,4 +1,4 @@
-import { t } from "../../../shared/i18n.js";
+import { t, getLang } from "../../../shared/i18n.js";
 import { flashSave } from "../save-indicator.js";
 import { BAR_THEMES, BAR_POSITIONS, EXPIRY_THEMES } from "../../../shared/overlay-themes.js";
 
@@ -68,7 +68,7 @@ export function renderAppearance(themeLink) {
   mount.appendChild(makeDivider());
 
   chrome.storage.local.get(
-    { [KEY_BAR]: "dots", [KEY_POSITION]: "bottom", [KEY_EXPIRY]: "blur" },
+    { [KEY_BAR]: "border", [KEY_POSITION]: "bottom", [KEY_EXPIRY]: "blur" },
     (prefs) => {
       mount.appendChild(
         buildSubsection({
@@ -134,10 +134,10 @@ function buildSubsection({ titleKey, subtitleKey, themes, selectedId, storageKey
   themes.forEach((theme) => {
     const opt = document.createElement("option");
     opt.value = theme.id;
-    opt.textContent = theme.name;
-    if (theme.id === selectedId) opt.selected = true;
+    opt.textContent = getLang() === "en" ? theme.nameEn : theme.name;
     sel.appendChild(opt);
   });
+  sel.value = selectedId;
 
   // Setting row (same pattern as general.js)
   wrap.appendChild(makeSettingRow(titleKey, subtitleKey, sel));
