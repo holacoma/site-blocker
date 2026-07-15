@@ -7,10 +7,12 @@
     "typecheck": "tsc",
     "lint": "eslint .",
     "check:guardrails": "node scripts/check-guardrails.js",
-    "verify": "npm run lint && npm run typecheck && npm run check:guardrails && npm test"
+    "verify": "npm run lint && npm run typecheck && npm run check:guardrails && npm test",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.61.1",
     "@types/chrome": "^0.2.2",
     "eslint": "^10.7.0",
     "globals": "^17.7.0",

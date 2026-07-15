@@ -3,3 +3,5 @@ coverage/
 NAMING.md
 builds/
 tmp/
+test-results/
+playwright-report/
