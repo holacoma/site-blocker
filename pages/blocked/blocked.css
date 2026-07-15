@@ -76,20 +76,79 @@ body {
 .main-window.anim-scale { animation: sb-scale 0.55s ease-out both; }
 
 /* ── Panel discreto (¿Aburrido? + iframe/frase), en el flujo normal de la página ── */
+/* Plain flex column: "¿Aburrido?" on top, the destination window below it,
+   collapsed to height:0 until the reveal. Growing the window's height is
+   what visually "pushes ¿Aburrido? upward" - the row is vertically centered
+   (see .page-row/.body), so as the window grows the whole centered content
+   (block card included) rises to make room, in step with the growth. This
+   is driven by JS animating an explicit pixel height (see
+   revealPanelHeight in blocked.js) since height:auto can't be transitioned. */
 .redirect-area {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 400px;
+  /* Grows with the viewport so the destination window gets real estate on
+     wide screens instead of staying pinned to the same width as the small
+     block-info card. */
+  max-width: clamp(400px, 60vw, 1100px);
+  flex: 1 1 400px;
 }
 
 .side-panel {
-  max-width: 400px;
+  width: 100%;
+  max-width: 100%;
+  height: 0;
+  overflow: hidden;
+  /* The box's own background/border also fades in with the height growth
+     (content fades in separately, later - see .content-visible below), so
+     the first sliver of growth is a soft, barely-there edge instead of a
+     stark solid-white bar. */
+  opacity: 0;
 }
-.side-panel.anim-slide { animation-duration: 1s; }
+/* After the reveal's height transition finishes, blocked.js swaps the
+   inline pixel height for this class so the panel resizes naturally again
+   (e.g. the iframe's own viewport-relative height, window resizes). Must
+   come before :fullscreen below so that rule still wins once toggled. */
+.side-panel.revealed {
+  height: auto;
+  opacity: 1;
+}
 
-/* Texto flotante, sin caja: solo el gradiente arcoíris sobre el tipo */
+/* The box itself (background/border) grows via height with no opacity
+   change - it's just an expanding rectangle, nothing to ghost. Its content
+   (title bar, window-body) stays invisible until there's enough height for
+   it to read as a window, then fades in - otherwise a thin strip of title
+   text is visible smeared across the top the instant height starts growing. */
+.side-panel > * {
+  opacity: 0;
+}
+.side-panel.content-visible > * {
+  opacity: 1;
+  transition: opacity 2s ease;
+}
+
+.side-panel:fullscreen {
+  max-width: none;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.side-panel:fullscreen .window-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.side-panel:fullscreen .frame-panel { flex: 1; min-height: 0; }
+.side-panel:fullscreen .redirect-iframe { height: 100%; }
+
+/* Texto flotante, sin caja: solo el gradiente arcoíris sobre el tipo.
+   Sequence (timed from blocked.js): invisible for INITIAL_WAIT_MS, then a
+   simple 5s fade+rise entrance (.bored-visible), sits fully shown for
+   BORED_SIT_MS, then a 5s fade back out (.bored-hidden) timed with the
+   window's reveal below it. */
 .bored-text {
   margin: 0;
   font-size: 26px;
@@ -101,9 +160,18 @@ body {
   background-clip: text;
   color: transparent;
   animation: bored-shine 3.5s linear infinite;
-  transition: opacity 0.8s ease;
+  opacity: 0;
+  transform: translateY(10px);
 }
-.bored-text.bored-hidden { opacity: 0; }
+.bored-text.bored-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 5s ease, transform 5s ease;
+}
+.bored-text.bored-hidden {
+  opacity: 0;
+  transition: opacity 5s ease;
+}
 [data-theme="retro"] .bored-text { font-family: "Pixelated MS Sans Serif", Arial; font-size: 20px; }
 
 @keyframes bored-shine {
@@ -138,14 +206,13 @@ body {
 
 .frame-panel {
   width: 100%;
-  opacity: 0;
-  transition: opacity 1s ease;
 }
-.frame-panel.frame-visible { opacity: 1; }
 
 .redirect-iframe {
   width: 100%;
-  height: 280px;
+  /* Scales with viewport height too, so the window is actually bigger on
+     larger screens instead of staying a fixed 280px regardless of space. */
+  height: clamp(280px, 55vh, 640px);
   border: 1px solid #dde1e7;
   border-radius: 6px;
 }
@@ -153,6 +220,105 @@ body {
   border: 2px inset #808080;
   border-radius: 0;
 }
+
+/* Sober: let the destination bleed to the window's own edges instead of
+   sitting in its own separately-bordered box inside window-body's padding.
+   The outer .window border/shadow + overflow:hidden becomes the only frame,
+   so it reads as one window instead of a box nested inside a box. */
+[data-theme="sober"] .side-panel .window-body {
+  padding: 0;
+}
+[data-theme="sober"] .frame-toolbar {
+  padding: 10px 14px 0;
+  margin-bottom: 6px;
+}
+[data-theme="sober"] .frame-fallback {
+  padding: 24px 16px;
+}
+[data-theme="sober"] .redirect-iframe {
+  border: none;
+  border-radius: 0;
+}
+
+/* ── Toolbar (recargar / abrir en pestaña) ── */
+.frame-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+/* An author-stylesheet display rule beats the UA's [hidden]{display:none}
+   regardless of specificity, so the JS toggling of .hidden was a no-op
+   without this. */
+.frame-toolbar[hidden] {
+  display: none;
+}
+
+.frame-tool-btn {
+  min-width: unset;
+  min-height: unset;
+  padding: 4px 9px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: #888;
+  transition: color .15s, background .15s;
+  margin: 0;
+}
+.frame-tool-btn:hover { color: #111; background: #eef0f3; }
+[data-theme="retro"] .frame-tool-btn {
+  border-radius: 0;
+  min-height: 20px;
+  min-width: 24px;
+  padding: 0 6px;
+  font-size: 13px;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  background: silver;
+  color: transparent;
+  text-shadow: 0 0 #222;
+  transition: none;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+[data-theme="retro"] .frame-tool-btn:hover { background: silver; color: transparent; }
+[data-theme="retro"] .frame-tool-btn:active {
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px grey;
+}
+
+/* ── Botón de pantalla completa (title-bar-controls del panel de destino) ── */
+.title-bar-controls .fullscreen-btn {
+  min-width: unset;
+  min-height: unset;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  color: #aaa;
+  transition: color .15s, background .15s;
+  margin: 0;
+}
+.title-bar-controls .fullscreen-btn:hover { color: #444; background: #eef0f3; }
+[data-theme="retro"] .title-bar-controls .fullscreen-btn {
+  border-radius: 0;
+  min-height: 14px;
+  min-width: 16px;
+  padding: 0 4px;
+  font-size: 11px;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  background: silver;
+  color: transparent;
+  text-shadow: 0 0 #222;
+  transition: none;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+[data-theme="retro"] .title-bar-controls .fullscreen-btn:hover { background: silver; color: transparent; }
 
 .frame-fallback { text-align: center; }
 

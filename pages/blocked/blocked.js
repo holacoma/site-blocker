@@ -2,9 +2,14 @@ import { initLang, t, getLang } from "../../shared/i18n.js";
 import { randomQuote } from "../../shared/quotes.js";
 
 const USELESS_WEB_URL = "https://theuselessweb.com/";
-const AUTO_OPEN_DELAY_MS = 5000;
-// Matches the .bored-text opacity transition duration in blocked.css
-const BORED_FADE_MS = 800;
+// Timeline: nothing happens (INITIAL_WAIT_MS) -> "¿Aburrido?" fades/rises in
+// (BORED_ENTER_MS, matches .bored-visible in blocked.css) -> sits fully shown
+// (BORED_SIT_MS) -> the destination window grows in, pushing "¿Aburrido?"
+// upward as it does (REVEAL_MS, matches .bored-hidden and revealPanelHeight).
+const INITIAL_WAIT_MS = 10000;
+const BORED_ENTER_MS = 5000;
+const BORED_SIT_MS = 10000;
+const REVEAL_MS = 5000;
 const FRAME_TIMEOUT_MS = 2500;
 // A "load" firing this fast almost always means the site refused to be framed
 // (X-Frame-Options / CSP frame-ancestors) rather than actually rendering.
@@ -74,54 +79,145 @@ initLang().then(() => {
  * @param {string} redirectUrl
  */
 function setupRedirectFrame(redirectMode, redirectUrl) {
-  const panel       = /** @type {HTMLElement | null} */ (document.getElementById("redirect-panel"));
-  const panelTitle  = document.getElementById("redirect-window-title");
-  const boredText   = document.getElementById("bored-text");
-  const framePanel  = document.getElementById("frame-panel");
-  const iframe      = /** @type {HTMLIFrameElement | null} */ (document.getElementById("redirect-iframe"));
-  const fallback    = document.getElementById("frame-fallback");
-  const quoteEl     = document.getElementById("frame-quote");
-  const anotherBtn  = document.getElementById("frame-another-btn");
-  if (!panel || !panelTitle || !boredText || !framePanel || !iframe || !fallback || !quoteEl || !anotherBtn) return;
+  const panel         = /** @type {HTMLElement | null} */ (document.getElementById("redirect-panel"));
+  const panelTitle    = document.getElementById("redirect-window-title");
+  const boredText     = document.getElementById("bored-text");
+  const iframe        = /** @type {HTMLIFrameElement | null} */ (document.getElementById("redirect-iframe"));
+  const fallback      = document.getElementById("frame-fallback");
+  const quoteEl       = document.getElementById("frame-quote");
+  const anotherBtn    = document.getElementById("frame-another-btn");
+  const frameToolbar  = document.getElementById("frame-toolbar");
+  const reloadBtn     = document.getElementById("frame-reload-btn");
+  const newTabBtn     = document.getElementById("frame-newtab-btn");
+  const fullscreenBtn = document.getElementById("frame-fullscreen-btn");
+  if (
+    !panel || !panelTitle || !boredText || !iframe || !fallback || !quoteEl || !anotherBtn ||
+    !frameToolbar || !reloadBtn || !newTabBtn || !fullscreenBtn
+  ) return;
 
   boredText.textContent = t("blockBoredLabel");
   anotherBtn.textContent = t("motivationalAnother");
+  reloadBtn.title = t("frameReloadTitle");
+  newTabBtn.title = t("frameNewTabTitle");
+  fullscreenBtn.title = t("frameFullscreenTitle");
 
   panelTitle.textContent =
     redirectMode === "motivational" ? t("blockRedirectMotivational") :
     redirectMode === "custom" && redirectUrl.trim() ? hostnameOf(normalizeUrl(redirectUrl.trim())) :
     t("blockRedirectWindowUseless");
 
+  /** @type {string | null} */
+  let currentUrl = null;
+
   function showQuote() {
     iframe.hidden = true;
+    frameToolbar.hidden = true;
     fallback.hidden = false;
     quoteEl.textContent = randomQuote(/** @type {"es" | "en"} */ (getLang()));
   }
 
   anotherBtn.addEventListener("click", showQuote);
 
-  // "¿Aburrido?" floats as plain text first (no card around it). Only once
-  // the destination is ready does the window (same style as the block card,
-  // in the normal page flow, no fixed/overlay positioning) slide into view.
-  setTimeout(() => {
-    boredText.classList.add("bored-hidden");
-    setTimeout(() => { boredText.hidden = true; }, BORED_FADE_MS);
+  reloadBtn.addEventListener("click", () => {
+    frameToolbar.hidden = true;
+    iframe.hidden = true;
+    attemptFrame(iframe, showQuote, () => { frameToolbar.hidden = false; }, withCacheBust(/** @type {string} */ (currentUrl)));
+  });
 
-    panel.hidden = false;
-    requestAnimationFrame(() => panel.classList.add("anim-slide"));
+  newTabBtn.addEventListener("click", () => {
+    window.open(currentUrl, "_blank", "noopener");
+  });
 
-    framePanel.hidden = false;
-    requestAnimationFrame(() => framePanel.classList.add("frame-visible"));
-
-    if (redirectMode === "motivational") {
-      showQuote();
+  fullscreenBtn.addEventListener("click", () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
     } else {
-      const url = redirectMode === "custom" && redirectUrl.trim()
-        ? normalizeUrl(redirectUrl.trim())
-        : USELESS_WEB_URL;
-      attemptFrame(iframe, showQuote, url);
+      panel.requestFullscreen().catch(() => {});
     }
-  }, AUTO_OPEN_DELAY_MS);
+  });
+
+  document.addEventListener("fullscreenchange", () => {
+    const isFull = document.fullscreenElement === panel;
+    fullscreenBtn.textContent = isFull ? "🗗" : "⛶";
+    fullscreenBtn.title = isFull ? t("frameRestoreTitle") : t("frameFullscreenTitle");
+  });
+
+  // Start loading the destination immediately, in the background: the panel
+  // is height:0/overflow:hidden until the reveal regardless, so this is
+  // invisible either way. This settles whether the toolbar ends up shown
+  // (iframe loaded) or not (quote fallback) well before revealPanelHeight
+  // measures the panel's content height - otherwise the toolbar could still
+  // be pending when we measure, and appearing afterward would silently grow
+  // the panel past its already-animated target.
+  if (redirectMode === "motivational") {
+    showQuote();
+  } else {
+    currentUrl = redirectMode === "custom" && redirectUrl.trim()
+      ? normalizeUrl(redirectUrl.trim())
+      : USELESS_WEB_URL;
+    attemptFrame(iframe, showQuote, () => { frameToolbar.hidden = false; }, currentUrl);
+  }
+
+  // Staged sequence: wait, then "¿Aburrido?" fades in, sits, then fades back
+  // out while the destination window grows in below it (pushing it upward).
+  setTimeout(() => {
+    boredText.classList.add("bored-visible");
+
+    setTimeout(() => {
+      boredText.classList.remove("bored-visible");
+      boredText.classList.add("bored-hidden");
+      setTimeout(() => { boredText.hidden = true; }, REVEAL_MS);
+
+      panel.inert = false;
+      revealPanelHeight(panel, REVEAL_MS);
+    }, BORED_ENTER_MS + BORED_SIT_MS);
+  }, INITIAL_WAIT_MS);
+}
+
+/**
+ * Grows the panel from height 0 to its natural content height so it visually
+ * pushes "¿Aburrido?" (and the vertically-centered layout above it) upward
+ * as it appears, instead of popping in. height:auto can't be transitioned
+ * directly, so the target is measured in pixels first.
+ *
+ * The box itself (background/border) fades in together with the height
+ * growth, so the first sliver is a soft edge rather than a stark solid bar.
+ * Its content (title bar, window-body) stays fully invisible until most of
+ * that growth has happened (.content-visible), then fades in on its own -
+ * otherwise a thin strip of title-bar text is smeared across the top the
+ * instant the box starts growing, before there's enough height to read as
+ * a window.
+ * @param {HTMLElement} panel
+ * @param {number} durationMs
+ */
+function revealPanelHeight(panel, durationMs) {
+  panel.style.transition = "none";
+  panel.style.height = "auto";
+  const target = panel.scrollHeight;
+  panel.style.height = "0px";
+  // Force layout so the browser commits the 0px height before animating.
+  void panel.offsetHeight;
+  panel.style.transition =
+    `height ${durationMs}ms cubic-bezier(0.16, 1, 0.3, 1), opacity ${durationMs}ms cubic-bezier(0.16, 1, 0.3, 1)`;
+  requestAnimationFrame(() => {
+    panel.style.height = `${target}px`;
+    panel.style.opacity = "1";
+  });
+
+  setTimeout(() => {
+    panel.classList.add("content-visible");
+  }, Math.round(durationMs * 0.6));
+
+  // Once settled, hand height/opacity back to the stylesheet (.revealed)
+  // instead of leaving inline values - an inline height would otherwise
+  // outrank the :fullscreen rule's height:100vh when the panel is later
+  // maximized.
+  setTimeout(() => {
+    panel.style.transition = "";
+    panel.style.height = "";
+    panel.style.opacity = "";
+    panel.classList.add("revealed");
+  }, durationMs + 50);
 }
 
 /** @param {string} url */
@@ -136,9 +232,10 @@ function hostnameOf(url) {
 /**
  * @param {HTMLIFrameElement} iframe
  * @param {() => void} onBlocked
+ * @param {() => void} onLoaded
  * @param {string} url
  */
-function attemptFrame(iframe, onBlocked, url) {
+function attemptFrame(iframe, onBlocked, onLoaded, url) {
   const startedAt = Date.now();
   let settled = false;
 
@@ -156,6 +253,7 @@ function attemptFrame(iframe, onBlocked, url) {
       onBlocked();
     } else {
       iframe.hidden = false;
+      onLoaded();
     }
   }, { once: true });
 
@@ -165,6 +263,17 @@ function attemptFrame(iframe, onBlocked, url) {
 /** @param {string} url */
 function normalizeUrl(url) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
+/**
+ * Forces the iframe to actually re-navigate (assigning the same src again is
+ * a no-op in Chrome) and, for theuselessweb.com, picks a fresh random page.
+ * @param {string} url
+ */
+function withCacheBust(url) {
+  const u = new URL(url);
+  u.searchParams.set("_r", String(Date.now()));
+  return u.toString();
 }
 
 /** @param {string} blockAnimation */
