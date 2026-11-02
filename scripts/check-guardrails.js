@@ -4,9 +4,10 @@
 
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const EM_DASH = "—";
-const projectRoot = new URL("..", import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL("..", import.meta.url));
 
 let failed = false;
 
