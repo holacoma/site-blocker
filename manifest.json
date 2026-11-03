@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Blockdoze",
-  "version": "1.1",
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwO24eXRCiiAeFBYUsv7X7wYPLkOlgDlBYIpmzuaY1IZEf/rS/UUGPD1meXT6u5jIJlH/zRoHk98d+tPc3c2DRQfuhUffV+xt+uxnMDq18zPkqdlQlhFu6WipuYIfO79IVYlstonxqv20efg+bxXolbcDeHNK/sNYP0bA5BA2Yaw9p9B5l25cwbP9GuioGP5TjSIhu3Ih8Y2AwG9RTdxWmrFHxnkD6bUWyCb/C5HvokUaSre+AF5XP4PFgXGJscsfXO5dBaH9pawa4ATl+vW3pIMfAMePD49FqzB2dhuwh/0aKqNR0mYm9BSas1f2AH0DRx84uEoQjphYbIleL1SYFQIDAQAB",
+  "version": "1.2",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx2Fs2xUYsgzJZgnkMEwIRI+6yzGYZm/GMkzZV7Q0S4Z3BoBUl8fXTTX9fYRsgOe8iAxIpPVfg3HO7sE4abCjvJorYtgIT0SQFW1BpDr/0xHG3qtHaoiAtEMXLpmvPGoxjR3qufSh/YXFY3Y65NimP6EAkqiwqlZpk7cBIt8RaS7af5wcWpWUXUVZBDEuAUhTyJhsxlIC5PJzPKPh+7sB2JnuOgkxDXMWbF0pvbI0TCxjpGQ+FSHgcyL3GX1HxErhcTt0MgB53UQVcL0nJeyfJ78bwpEkEQp28Oi+3GFVVlc/yktP0g/JWjagOGt9AXjTf4R8DRYo79Fi+nEPB16A+QIDAQAB",
   "default_locale": "es",
   "description": "Bloqueá sitios que te distraen. Configurá días, timers y excepciones para mantener el foco.",
   "permissions": [
